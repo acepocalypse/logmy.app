@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Tracker (MVP)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    textarea { width: 100%; min-height: 140px; margin-bottom: 1rem; }
+    input, select, button { padding: .5rem; margin: .25rem 0; width: 100%; box-sizing: border-box; }
+    .hidden { display: none; }
+    form label { display: block; margin-top: .5rem; font-weight: 600; }
+  </style>
+  <!-- Supabase JS (public anon) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <h1>🗂️ Job / Internship Tracker</h1>
+
+  <!-- 1. Auth Section -->
+  <section id="auth-section">
+    <h2>Sign In</h2>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button id="login-btn">Log In</button>
+    <p id="auth-msg"></p>
+  </section>
+
+  <!-- 2. Paste + Parse Section -->
+  <section id="app-section" class="hidden">
+    <h2>Paste Job Posting</h2>
+    <textarea id="job-text" placeholder="Paste the full job description here..."></textarea>
+    <button id="parse-btn">Parse</button>
+
+    <form id="confirm-form" class="hidden">
+      <h3>Confirm Details</h3>
+      <label>Company <input name="company" /></label>
+      <label>Position <input name="position" /></label>
+      <label>Location <input name="location" /></label>
+      <label>Job Type
+        <select name="job_type">
+          <option value="">Select type…</option>
+          <option>Internship</option>
+          <option>Full‑Time</option>
+        </select>
+      </label>
+      <label>Application Date <input name="application_date" type="date" /></label>
+      <label>Deadline <input name="deadline" type="date" /></label>
+      <label>Status
+        <select name="status">
+          <option>Applied</option>
+          <option>Interview</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+        </select>
+      </label>
+      <label>Job URL <input name="job_url" type="url" /></label>
+      <label>Notes <input name="notes" /></label>
+      <button type="submit">Save Application</button>
+      <p id="submit-msg"></p>
+    </form>
+  </section>
+
+  <script>
+    // ----- Config -----
+    const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s'; // replace with your real anon key
+    const API_BASE = 'http://127.0.0.1:5000'; // Flask dev URL – adjust for prod
+
+    const supabase = supabase_js.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // Elements
+    const authSection   = document.getElementById('auth-section');
+    const appSection    = document.getElementById('app-section');
+    const emailInput    = document.getElementById('email');
+    const passInput     = document.getElementById('password');
+    const loginBtn      = document.getElementById('login-btn');
+    const authMsg       = document.getElementById('auth-msg');
+
+    const jobText       = document.getElementById('job-text');
+    const parseBtn      = document.getElementById('parse-btn');
+    const confirmForm   = document.getElementById('confirm-form');
+    const submitMsg     = document.getElementById('submit-msg');
+
+    // ----- Auth -----
+    loginBtn.addEventListener('click', async () => {
+      authMsg.textContent = 'Logging in…';
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailInput.value,
+        password: passInput.value,
+      });
+      if (error) {
+        authMsg.textContent = `❌ ${error.message}`;
+      } else {
+        authMsg.textContent = '✅ Logged in!';
+        authSection.classList.add('hidden');
+        appSection.classList.remove('hidden');
+      }
+    });
+
+    // Helper to get JWT
+    async function getJwt() {
+      const { data } = await supabase.auth.getSession();
+      return data.session?.access_token ?? null;
+    }
+
+    // ----- Parse Job Posting -----
+    parseBtn.addEventListener('click', async () => {
+      const text = jobText.value.trim();
+      if (!text) return alert('Paste job description first.');
+
+      parseBtn.disabled = true;
+      parseBtn.textContent = 'Parsing…';
+
+      const res = await fetch(`${API_BASE}/parse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const parsed = await res.json();
+      parseBtn.disabled = false;
+      parseBtn.textContent = 'Parse';
+
+      if (res.ok) {
+        // Populate form
+        [...confirmForm.elements].forEach(el => {
+          if (el.name && parsed[el.name]) el.value = parsed[el.name];
+        });
+        confirmForm.classList.remove('hidden');
+        confirmForm.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        alert(parsed.error || 'Parse failed');
+      }
+    });
+
+    // ----- Submit Application -----
+    confirmForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitMsg.textContent = '';
+
+      const jwt = await getJwt();
+      if (!jwt) return alert('Session expired – log in again.');
+
+      const formData = Object.fromEntries(new FormData(confirmForm));
+      const res = await fetch(`${API_BASE}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwt}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const out = await res.json();
+      if (res.ok) {
+        submitMsg.textContent = '✅ Saved!';
+        confirmForm.reset();
+        jobText.value = '';
+        confirmForm.classList.add('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        submitMsg.textContent = `❌ ${out.error || 'Save failed'}`;
+      }
+    });
+  </script>
+</body>
+</html>
