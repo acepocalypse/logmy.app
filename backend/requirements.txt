@@ -1,3 +1,4 @@
 flask
 python-dotenv
-supabase==1.0.0
+supabase
+pyjwt>=2.0
