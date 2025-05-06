@@ -15,18 +15,21 @@
     table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
     th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
     th { background: #f9f9f9; }
+    #auth-toggle { font-size: .9rem; color: #0070f3; cursor: pointer; margin-top: .25rem; display: inline-block; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+  <!-- UMD build exposes window.supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h1>🗂️ Job / Internship Tracker</h1>
 
   <!-- 1️⃣ Auth Section -->
   <section id="auth-section">
-    <h2>Sign In</h2>
+    <h2 id="auth-title">Sign In</h2>
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Password" required />
-    <button id="login-btn">Log In</button>
+    <button id="auth-btn">Log In</button>
+    <span id="auth-toggle">Need an account? Sign Up</span>
     <p id="auth-msg"></p>
   </section>
 
@@ -85,36 +88,68 @@
     // ----- Config -----
     const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s';
-    const API_BASE = 'http://127.0.0.1:5000';
+    const API_BASE      = 'https://job-tracker-api.onrender.com'; // Flask URL
 
-    const supabase = supabase_js.createClient(SUPABASE_URL, SUPABASE_ANON);
+    // Create Supabase client (global object provided by UMD build)
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
     // Elements
     const authSection  = document.getElementById('auth-section');
-    const appSection   = document.getElementById('app-section');
-    const listSection  = document.getElementById('list-section');
+    const authTitle    = document.getElementById('auth-title');
+    const authBtn      = document.getElementById('auth-btn');
+    const authToggle   = document.getElementById('auth-toggle');
+    const authMsg      = document.getElementById('auth-msg');
     const emailInput   = document.getElementById('email');
     const passInput    = document.getElementById('password');
-    const loginBtn     = document.getElementById('login-btn');
-    const authMsg      = document.getElementById('auth-msg');
 
+    const appSection   = document.getElementById('app-section');
+    const listSection  = document.getElementById('list-section');
     const jobText      = document.getElementById('job-text');
     const parseBtn     = document.getElementById('parse-btn');
     const confirmForm  = document.getElementById('confirm-form');
     const submitMsg    = document.getElementById('submit-msg');
     const appsTable    = document.getElementById('apps-table').querySelector('tbody');
 
-    // ----- Auth -----
-    loginBtn.addEventListener('click', async () => {
-      authMsg.textContent = 'Logging in…';
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passInput.value,
-      });
+    let mode = 'signin'; // or 'signup'
+
+    // ----- Toggle Sign In / Sign Up -----
+    authToggle.addEventListener('click', () => {
+      if (mode === 'signin') {
+        mode = 'signup';
+        authTitle.textContent = 'Sign Up';
+        authBtn.textContent = 'Create Account';
+        authToggle.textContent = 'Have an account? Sign In';
+        authMsg.textContent = '';
+      } else {
+        mode = 'signin';
+        authTitle.textContent = 'Sign In';
+        authBtn.textContent = 'Log In';
+        authToggle.textContent = 'Need an account? Sign Up';
+        authMsg.textContent = '';
+      }
+    });
+
+    // ----- Auth Flow -----
+    authBtn.addEventListener('click', async () => {
+      authMsg.textContent = mode === 'signin' ? 'Logging in…' : 'Creating account…';
+      let result;
+      if (mode === 'signin') {
+        result = await sb.auth.signInWithPassword({
+          email: emailInput.value,
+          password: passInput.value,
+        });
+      } else {
+        result = await sb.auth.signUp({
+          email: emailInput.value,
+          password: passInput.value,
+        });
+      }
+      const { data, error } = result;
       if (error) {
         authMsg.textContent = `❌ ${error.message}`;
       } else {
-        authMsg.textContent = '✅ Logged in!';
+        authMsg.textContent = '✅ Success!';
+        // For sign‑up, Supabase may require email confirmation depending on settings
         authSection.classList.add('hidden');
         appSection.classList.remove('hidden');
         listSection.classList.remove('hidden');
@@ -123,7 +158,7 @@
     });
 
     async function getJwt() {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await sb.auth.getSession();
       return data.session?.access_token ?? null;
     }
 
@@ -132,19 +167,26 @@
       const text = jobText.value.trim();
       if (!text) return alert('Paste job description first.');
       parseBtn.disabled = true; parseBtn.textContent = 'Parsing…';
-      const res = await fetch(`${API_BASE}/parse`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      const parsed = await res.json();
-      parseBtn.disabled = false; parseBtn.textContent = 'Parse';
-      if (res.ok) {
-        [...confirmForm.elements].forEach(el => {
-          if (el.name && parsed[el.name]) el.value = parsed[el.name];
+      try {
+        const res = await fetch(`${API_BASE}/parse`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
         });
-        confirmForm.classList.remove('hidden');
-        confirmForm.scrollIntoView({ behavior: 'smooth' });
-      } else alert(parsed.error || 'Parse failed');
+        const parsed = await res.json();
+        parseBtn.disabled = false; parseBtn.textContent = 'Parse';
+        if (res.ok) {
+          [...confirmForm.elements].forEach(el => {
+            if (el.name && parsed[el.name]) el.value = parsed[el.name];
+          });
+          confirmForm.classList.remove('hidden');
+          confirmForm.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          alert(parsed.error || 'Parse failed');
+        }
+      } catch (err) {
+        parseBtn.disabled = false; parseBtn.textContent = 'Parse';
+        alert('Unable to reach API. Check API_BASE URL.');
+      }
     });
 
     // ----- Submit Application -----
@@ -168,7 +210,7 @@
     // ----- Load & Render Applications -----
     async function loadApplications() {
       appsTable.innerHTML = '<tr><td colspan="4">Loading…</td></tr>';
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('applications')
         .select('id, company, position, status, application_date')
         .order('application_date', { ascending: false });
