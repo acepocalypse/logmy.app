@@ -7,14 +7,9 @@ Provides endpoints to:
   • `/submit`      – save an application row to Supabase (JWT auth required)
   • `/health`      – simple health‑check for uptime monitoring
 
-Depends on:
-  • parser.py   – spaCy/regex extractors
-  • scraper.py  – requests + BeautifulSoup site‑specific scraping
-
-Environment variables (set in Render):
-  SUPABASE_URL           – e.g. https://abc.supabase.co
-  SUPABASE_SERVICE_KEY   – service‑role key
-  SUPABASE_JWT_SECRET    – Settings → API → JWT secret
+NOTE: Render requires the server to bind to **0.0.0.0:$PORT**.  The
+`app.run()` line at the bottom now explicitly sets `host="0.0.0.0"` so
+Render detects the open port (fixes the "No open ports detected" error).
 """
 from __future__ import annotations
 
@@ -74,7 +69,6 @@ def get_current_user(fn):
 # ---------------------------------------------------------------------------
 @app.route("/parse", methods=["POST"])
 def parse_endpoint():
-    """Parse raw text payload {"text": "…"}."""
     text = request.get_json(force=True).get("text", "").strip()
     if not text:
         return jsonify({"error": "Missing 'text' field"}), 400
@@ -83,7 +77,6 @@ def parse_endpoint():
 
 @app.route("/link-parse", methods=["POST"])
 def link_parse_endpoint():
-    """Fetch a job‑posting URL, scrape HTML, then parse."""
     url = request.get_json(force=True).get("url", "").strip()
     if not url:
         return jsonify({"error": "Missing 'url' field"}), 400
@@ -91,7 +84,7 @@ def link_parse_endpoint():
         html = fetch_page(url)
         raw_text, meta = extract_text(html, url)
         data = parse_job(raw_text)
-        data |= meta  # merge scraped meta (company, position, location…)
+        data |= meta
         data["job_url"] = url
         return jsonify(data), 200
     except ScrapeError as exc:
@@ -103,7 +96,6 @@ def link_parse_endpoint():
 @app.route("/submit", methods=["POST"])
 @get_current_user
 def submit_endpoint():
-    """Save parsed/confirmed application to Supabase."""
     data = request.get_json(force=True)
     application = {
         "user_id":          request.user_id,
@@ -131,4 +123,6 @@ def health():
 
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(debug=True, port=int(os.getenv("PORT", 5000)))
+    port = int(os.getenv("PORT", 5000))
+    # Bind to 0.0.0.0 so Render can detect the open port
+    app.run(host="0.0.0.0", port=port, debug=False)
