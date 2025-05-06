@@ -3,229 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Tracker (MVP)</title>
+  <title>Job Tracker (URL mode)</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-    h1,h2,h3 { margin: .5rem 0; }
-    textarea { width: 100%; min-height: 140px; margin-bottom: 1rem; }
-    input, select, button { padding: .5rem; margin: .25rem 0; width: 100%; box-sizing: border-box; }
+    h1,h2 { margin: .5rem 0; }
+    input, textarea, select, button { width: 100%; padding: .5rem; margin: .3rem 0; box-sizing: border-box; }
     button { cursor: pointer; }
     .hidden { display: none; }
-    form label { display: block; margin-top: .5rem; font-weight: 600; }
-    table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
-    th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
+    table { width: 100%; margin-top: 2rem; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: .4rem .6rem; }
     th { background: #f9f9f9; }
-    #auth-toggle { font-size: .9rem; color: #0070f3; cursor: pointer; margin-top: .25rem; display: inline-block; }
   </style>
-  <!-- UMD build exposes window.supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h1>🗂️ Job / Internship Tracker</h1>
 
-  <!-- 1️⃣ Auth Section -->
+  <!-- Auth -->
   <section id="auth-section">
-    <h2 id="auth-title">Sign In</h2>
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button id="auth-btn">Log In</button>
-    <span id="auth-toggle">Need an account? Sign Up</span>
+    <h2>Sign In</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="login-btn">Log In</button>
     <p id="auth-msg"></p>
   </section>
 
-  <!-- 2️⃣ Application Input Section -->
-  <section id="app-section" class="hidden">
-    <h2>Paste Job Posting</h2>
-    <textarea id="job-text" placeholder="Paste the full job description here..."></textarea>
-    <button id="parse-btn">Parse</button>
-
-    <form id="confirm-form" class="hidden">
-      <h3>Confirm Details</h3>
-      <label>Company <input name="company" /></label>
-      <label>Position <input name="position" /></label>
-      <label>Location <input name="location" /></label>
-      <label>Job Type
-        <select name="job_type">
-          <option value="">Select type…</option>
-          <option>Internship</option>
-          <option>Full‑Time</option>
-        </select>
-      </label>
-      <label>Application Date <input name="application_date" type="date" /></label>
-      <label>Deadline <input name="deadline" type="date" /></label>
-      <label>Status
-        <select name="status">
-          <option>Applied</option>
-          <option>Interview</option>
-          <option>Offer</option>
-          <option>Rejected</option>
-        </select>
-      </label>
-      <label>Job URL <input name="job_url" type="url" /></label>
-      <label>Notes <input name="notes" /></label>
-      <button type="submit">Save Application</button>
-      <p id="submit-msg"></p>
-    </form>
+  <!-- Input job URL -->
+  <section id="input-section" class="hidden">
+    <h2>Paste Job‑Posting URL</h2>
+    <input id="job-url" placeholder="https://…" />
+    <button id="link-parse-btn">Fetch & Parse</button>
+    <p id="link-msg"></p>
   </section>
 
-  <!-- 3️⃣ Saved Applications Table -->
+  <!-- Confirm form -->
+  <form id="confirm-form" class="hidden">
+    <h2>Review Details</h2>
+    <label>Company <input name="company" /></label>
+    <label>Position <input name="position" /></label>
+    <label>Location <input name="location" /></label>
+    <label>Job Type <select name="job_type"><option></option><option>Internship</option><option>Full‑Time</option></select></label>
+    <label>Application Date <input name="application_date" type="date" /></label>
+    <label>Deadline <input name="deadline" type="date" /></label>
+    <label>Status <select name="status"><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option></select></label>
+    <label>Job URL <input name="job_url" /></label>
+    <label>Notes <input name="notes" /></label>
+    <button type="submit">Save</button>
+    <p id="submit-msg"></p>
+  </form>
+
+  <!-- Table of saved apps -->
   <section id="list-section" class="hidden">
     <h2>Your Applications</h2>
-    <table id="apps-table">
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th>Position</th>
-          <th>Status</th>
-          <th>Applied</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <table id="apps-table"><thead><tr><th>Company</th><th>Position</th><th>Status</th><th>Applied</th></tr></thead><tbody></tbody></table>
   </section>
 
-  <script>
-    // ----- Config -----
-    const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s';
-    const API_BASE      = 'https://logmy-app.onrender.com';
+<script>
+const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s';
+const API_BASE      = 'https://logmy-app.onrender.com';
 
-    // Create Supabase client (global object provided by UMD build)
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const email = document.getElementById('email');
+const pass  = document.getElementById('password');
+const login = document.getElementById('login-btn');
+const authMsg = document.getElementById('auth-msg');
 
-    // Elements
-    const authSection  = document.getElementById('auth-section');
-    const authTitle    = document.getElementById('auth-title');
-    const authBtn      = document.getElementById('auth-btn');
-    const authToggle   = document.getElementById('auth-toggle');
-    const authMsg      = document.getElementById('auth-msg');
-    const emailInput   = document.getElementById('email');
-    const passInput    = document.getElementById('password');
+const inputSection = document.getElementById('input-section');
+const linkBtn = document.getElementById('link-parse-btn');
+const jobUrl  = document.getElementById('job-url');
+const linkMsg = document.getElementById('link-msg');
 
-    const appSection   = document.getElementById('app-section');
-    const listSection  = document.getElementById('list-section');
-    const jobText      = document.getElementById('job-text');
-    const parseBtn     = document.getElementById('parse-btn');
-    const confirmForm  = document.getElementById('confirm-form');
-    const submitMsg    = document.getElementById('submit-msg');
-    const appsTable    = document.getElementById('apps-table').querySelector('tbody');
+const confirmForm = document.getElementById('confirm-form');
+const submitMsg = document.getElementById('submit-msg');
+const appsBody  = document.querySelector('#apps-table tbody');
 
-    let mode = 'signin'; // or 'signup'
+login.addEventListener('click', async () => {
+  authMsg.textContent = 'Logging in…';
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: email.value,
+    password: pass.value
+  });
+  if (error) authMsg.textContent = '❌ ' + error.message;
+  else {
+    authMsg.textContent = '✅';
+    document.getElementById('auth-section').classList.add('hidden');
+    inputSection.classList.remove('hidden');
+    document.getElementById('list-section').classList.remove('hidden');
+    loadApps();
+  }
+});
 
-    // ----- Toggle Sign In / Sign Up -----
-    authToggle.addEventListener('click', () => {
-      if (mode === 'signin') {
-        mode = 'signup';
-        authTitle.textContent = 'Sign Up';
-        authBtn.textContent = 'Create Account';
-        authToggle.textContent = 'Have an account? Sign In';
-        authMsg.textContent = '';
-      } else {
-        mode = 'signin';
-        authTitle.textContent = 'Sign In';
-        authBtn.textContent = 'Log In';
-        authToggle.textContent = 'Need an account? Sign Up';
-        authMsg.textContent = '';
-      }
-    });
+async function jwt() {
+  const { data } = await sb.auth.getSession();
+  return data.session?.access_token;
+}
 
-    // ----- Auth Flow -----
-    authBtn.addEventListener('click', async () => {
-      authMsg.textContent = mode === 'signin' ? 'Logging in…' : 'Creating account…';
-      let result;
-      if (mode === 'signin') {
-        result = await sb.auth.signInWithPassword({
-          email: emailInput.value,
-          password: passInput.value,
-        });
-      } else {
-        result = await sb.auth.signUp({
-          email: emailInput.value,
-          password: passInput.value,
-        });
-      }
-      const { data, error } = result;
-      if (error) {
-        authMsg.textContent = `❌ ${error.message}`;
-      } else {
-        authMsg.textContent = '✅ Success!';
-        // For sign‑up, Supabase may require email confirmation depending on settings
-        authSection.classList.add('hidden');
-        appSection.classList.remove('hidden');
-        listSection.classList.remove('hidden');
-        loadApplications();
-      }
-    });
+linkBtn.addEventListener('click', async () => {
+  const url = jobUrl.value.trim();
+  if (!url) return alert('Enter a URL');
+  linkMsg.textContent = 'Fetching…';
+  const res = await fetch(`${API_BASE}/link-parse`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ url })
+  });
+  const data = await res.json();
+  if (!res.ok) return linkMsg.textContent = '❌ ' + data.error;
+  linkMsg.textContent = '✅ Parsed';
+  [...confirmForm.elements].forEach(el => {
+    if (el.name && data[el.name]) el.value = data[el.name];
+  });
+  confirmForm.classList.remove('hidden');
+  confirmForm.scrollIntoView({behavior:'smooth'});
+});
 
-    async function getJwt() {
-      const { data } = await sb.auth.getSession();
-      return data.session?.access_token ?? null;
-    }
+confirmForm.addEventListener('submit', async e => {
+  e.preventDefault(); submitMsg.textContent='';
+  const token = await jwt(); if (!token) return alert('login again');
+  const payload = Object.fromEntries(new FormData(confirmForm));
+  const res = await fetch(`${API_BASE}/submit`, {
+    method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+    body: JSON.stringify(payload)
+  });
+  const out = await res.json();
+  if (res.ok){
+    submitMsg.textContent = '✅ saved';
+    confirmForm.reset(); confirmForm.classList.add('hidden'); jobUrl.value='';
+    loadApps();
+  } else submitMsg.textContent='❌ '+out.error;
+});
 
-    // ----- Parse Job Posting -----
-    parseBtn.addEventListener('click', async () => {
-      const text = jobText.value.trim();
-      if (!text) return alert('Paste job description first.');
-      parseBtn.disabled = true; parseBtn.textContent = 'Parsing…';
-      try {
-        const res = await fetch(`${API_BASE}/parse`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-        });
-        const parsed = await res.json();
-        parseBtn.disabled = false; parseBtn.textContent = 'Parse';
-        if (res.ok) {
-          [...confirmForm.elements].forEach(el => {
-            if (el.name && parsed[el.name]) el.value = parsed[el.name];
-          });
-          confirmForm.classList.remove('hidden');
-          confirmForm.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          alert(parsed.error || 'Parse failed');
-        }
-      } catch (err) {
-        parseBtn.disabled = false; parseBtn.textContent = 'Parse';
-        alert('Unable to reach API. Check API_BASE URL.');
-      }
-    });
-
-    // ----- Submit Application -----
-    confirmForm.addEventListener('submit', async (e) => {
-      e.preventDefault(); submitMsg.textContent = '';
-      const jwt = await getJwt(); if (!jwt) return alert('Session expired – log in again.');
-      const formData = Object.fromEntries(new FormData(confirmForm));
-      const res = await fetch(`${API_BASE}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${jwt}` },
-        body: JSON.stringify(formData),
-      });
-      const out = await res.json();
-      if (res.ok) {
-        submitMsg.textContent = '✅ Saved!';
-        confirmForm.reset(); confirmForm.classList.add('hidden'); jobText.value = '';
-        loadApplications(); window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else submitMsg.textContent = `❌ ${out.error || 'Save failed'}`;
-    });
-
-    // ----- Load & Render Applications -----
-    async function loadApplications() {
-      appsTable.innerHTML = '<tr><td colspan="4">Loading…</td></tr>';
-      const { data, error } = await sb
-        .from('applications')
-        .select('id, company, position, status, application_date')
-        .order('application_date', { ascending: false });
-
-      if (error) return appsTable.innerHTML = `<tr><td colspan="4">❌ ${error.message}</td></tr>`;
-      if (!data.length) return appsTable.innerHTML = '<tr><td colspan="4">No applications yet.</td></tr>';
-
-      appsTable.innerHTML = data.map(row => `
-        <tr>
-          <td>${row.company}</td>
-          <td>${row.position}</td>
-          <td>${row.status}</td>
-          <td>${row.application_date ?? ''}</td>
-        </tr>`).join('');
-    }
-  </script>
+async function loadApps(){
+  appsBody.innerHTML='<tr><td colspan=4>Loading…</td></tr>';
+  const { data, error } = await sb.from('applications').select('company,position,status,application_date').order('application_date',{ascending:false});
+  if (error) appsBody.innerHTML='<tr><td colspan=4>'+error.message+'</td></tr>';
+  else if (!data.length) appsBody.innerHTML='<tr><td colspan=4>None yet</td></tr>';
+  else appsBody.innerHTML = data.map(r=>`<tr><td>${r.company}</td><td>${r.position}</td><td>${r.status}</td><td>${r.application_date||''}</td></tr>`).join('');
+}
+</script>
 </body>
 </html>
