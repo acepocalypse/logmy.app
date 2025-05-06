@@ -38,6 +38,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import jwt
 from jwt import InvalidTokenError
+from flask_cors import CORS
 
 # ---------------------------------------------------------------------------
 # Initialisation & Configuration
@@ -54,6 +55,7 @@ if not all([SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_JWT_SECRET]):
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ---------------------------------------------------------------------------
 # Auth helpers
