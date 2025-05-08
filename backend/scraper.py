@@ -26,6 +26,32 @@ HEADERS = {
 class ScrapeError(Exception):
     """Raised when a page cannot be fetched or parsed."""
 
+# ─── NLP helper that mines salary / deadline / start-date ──────────────
+import re, spacy, dateparser
+NLP = spacy.load("en_core_web_sm")
+
+def extract_insights_from_description(desc: str) -> dict:
+    insights = dict.fromkeys(["salary", "deadline", "timeframe", "start_date"])
+    if not desc:
+        return insights
+    doc = NLP(desc)
+
+    # salary
+    sal = re.findall(r'[$£€₹]\\s?\\d{2,3}(?:[\\,\\d]{0,3})?', desc)
+    if sal:
+        nums = [int(re.sub(r'[^\\d]', '', s)) for s in sal][:2]
+        insights["salary"] = (f"${nums[0]}–${nums[1]}" if len(nums) == 2 else f"${nums[0]}")
+    # deadline
+    for s in doc.sents:
+        if any(k in s.text.lower() for k in ("apply by", "deadline")):
+            d = dateparser.parse(s.text)
+            if d: insights["deadline"] = d.strftime("%Y-%m-%d"); break
+    # timeframe
+    m = re.search(r'\\b(\\d{1,2}\\s?(?:weeks?|months?)|summer \\d{4}|fall \\d{4}|spring \\d{4})\\b', desc, re.I)
+    if m: insights["timeframe"] = m.group(1)
+    # start date
+    # … (keep your regex logic)
+    return insights
 
 # ---------------------------------------------------------------------------
 # Network fetch
@@ -78,11 +104,21 @@ def _extract_indeed(dom: BeautifulSoup) -> tuple[str, dict]:
 
 # ---------------- LinkedIn ----------------
 def _extract_linkedin(dom: BeautifulSoup) -> tuple[str, dict]:
-    title = _text_of(dom.select_one("h1.top-card-layout__title"))
-    company = _text_of(dom.select_one("a.topcard__org-name-link"))
+    title    = _text_of(dom.select_one("h1.top-card-layout__title"))
+    company  = _text_of(dom.select_one("a.topcard__org-name-link"))
     location = _text_of(dom.select_one("span.topcard__flavor--bullet"))
-    body_el = dom.select_one("div.description__text") or dom.select_one("div.show-more-less-html__markup")
-    body = _text_of(body_el)
+    body_el  = (dom.select_one("div.description__text")
+                or dom.select_one("div.show-more-less-html__markup"))
+    body     = _text_of(body_el)
 
-    meta = {"company": company, "position": title, "location": location}
+    # Run your NLP insight extractor on the description
+    extra = extract_insights_from_description(body)
+
+    meta = {
+        "company":   company,
+        "position":  title,
+        "location":  location,
+        **extra      # salary, deadline, timeframe, start_date
+    }
+    logger.debug("LinkedIn meta after NLP: %s", meta)
     return body or dom.get_text(" ", strip=True), meta
