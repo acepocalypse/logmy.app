@@ -97,6 +97,7 @@ def link_parse_endpoint():
 @get_current_user
 def submit_endpoint():
     data = request.get_json(force=True)
+
     application = {
         "user_id":          request.user_id,
         "company":          data.get("company", ""),
@@ -104,7 +105,7 @@ def submit_endpoint():
         "location":         data.get("location", ""),
         "job_type":         data.get("job_type", ""),
         "application_date": data.get("application_date") or datetime.utcnow().date().isoformat(),
-        "deadline":         data.get("deadline", ""),
+        "deadline":         data.get("deadline") or None,
         "status":           data.get("status", "Applied"),
         "job_url":          data.get("job_url", ""),
         "notes":            data.get("notes", ""),
