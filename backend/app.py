@@ -57,7 +57,7 @@ def get_current_user(fn):
             return jsonify({"error": "Missing Bearer token"}), 401
         token = auth_header.split(" ", 1)[1]
         try:
-            payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=[JWT_ALG])
+            payload = jwt.decode(token,SUPABASE_JWT_SECRET,algorithms=["HS256"], audience="authenticated")
         except InvalidTokenError as exc:
             return jsonify({"error": "Invalid token", "detail": str(exc)}), 401
         request.user_id = payload.get("sub")
