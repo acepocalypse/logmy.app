@@ -22,9 +22,16 @@ HEADERS = {
     )
 }
 
-
 class ScrapeError(Exception):
     """Raised when a page cannot be fetched or parsed."""
+
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # ─── NLP helper that mines salary / deadline / start-date ──────────────
 import re, spacy, dateparser
