@@ -99,18 +99,18 @@ def submit_endpoint():
     data = request.get_json(force=True)
 
     application = {
-        "user_id":          request.user_id,
-        "company":          data.get("company", ""),
-        "position":         data.get("position", ""),
-        "location":         data.get("location", ""),
-        "job_type":         data.get("job_type", ""),
+        "user_id": request.user_id,
+        "company": data.get("company") or "",
+        "position": data.get("position") or "",
+        "location": data.get("location") or "",
+        "job_type": data.get("job_type") or None,
         "application_date": data.get("application_date") or datetime.utcnow().date().isoformat(),
-        "deadline":         data.get("deadline") or None,
-        "status":           data.get("status", "Applied"),
-        "job_url":          data.get("job_url", ""),
-        "notes":            data.get("notes", ""),
-        "created_at":       datetime.utcnow().isoformat(),
-        "updated_at":       datetime.utcnow().isoformat(),
+        "deadline": data.get("deadline") or None,
+        "status": data.get("status") or "Applied",
+        "job_url": data.get("job_url") or "",
+        "notes": data.get("notes") or None,
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat(),
     }
     response = supabase.table("applications").insert(application).execute()
     if response.error:
