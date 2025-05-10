@@ -68,19 +68,23 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let grid;
 
 // ---------- Auth ----------
-login_btn = document.getElementById('login-btn');
+const auth_section  = document.getElementById('auth-section');
+const input_section = document.getElementById('input-section');
+const sheet_section = document.getElementById('sheet-section');
+const auth_msg      = document.getElementById('auth-msg');
+const login_btn     = document.getElementById('login-btn');
+
 login_btn.addEventListener('click', async () => {
-  auth_msg = document.getElementById('auth-msg');
   auth_msg.textContent = 'Logging in…';
   const { error } = await sb.auth.signInWithPassword({ email: email.value, password: password.value });
   auth_msg.textContent = error ? '❌ ' + error.message : '✅';
-  if (!error) {
-    auth_section.style.display='none'; input_section.classList.remove('hidden'); sheet_section.classList.remove('hidden'); loadGrid(); }
+  if (!error){
+    auth_section.classList.add('hidden');
+    input_section.classList.remove('hidden');
+    sheet_section.classList.remove('hidden');
+    loadGrid();
+  }
 });
-
-async function jwt() {
-  return (await sb.auth.getSession()).data.session?.access_token;
-}
 
 // ---------- URL Parse ----------
 link_parse_btn = document.getElementById('link-parse-btn');
