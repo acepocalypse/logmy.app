@@ -113,8 +113,9 @@ def submit_endpoint():
         "updated_at": datetime.utcnow().isoformat(),
     }
     response = supabase.table("applications").insert(application).execute()
-    if response.error:
-        return jsonify({"error": response.error.message}), 500
+    if response.status_code and response.status_code >= 400:
+        return jsonify({"error": response.json()}), 500
+
     return jsonify({"success": True, "data": response.data}), 201
 
 

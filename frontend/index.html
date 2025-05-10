@@ -6,17 +6,15 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geist-ui/style@latest/dist/geist.css">
   <link rel="icon" href="favicon.svg" type="image/svg" />
   <title>logmy.app</title>
+  <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet" />
   <style>
     body { font-family: 'Geist Mono', monospace; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-    h1,h2 { margin: .5rem 0; }
-    input, textarea, select, button { width: 100%; padding: .5rem; margin: .3rem 0; box-sizing: border-box; }
-    button { cursor: pointer; }
-    .hidden { display: none; }
-    table { width: 100%; margin-top: 2rem; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: .4rem .6rem; }
-    th { background: #f9f9f9; }
+    #grid { margin-top: 1.5rem; border: 1px solid #eaeaea; }
+    button { margin:.4rem 0; width:100%; cursor:pointer; }
+    .hidden { display:none; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
 </head>
 <body>
   <h1>logmy.app</h1>
@@ -54,94 +52,94 @@
     <p id="submit-msg"></p>
   </form>
 
-  <!-- Table of saved apps -->
-  <section id="list-section" class="hidden">
+  <!-- Spreadsheet grid -->
+  <section id="sheet-section" class="hidden">
     <h2>Your Applications</h2>
-    <table id="apps-table"><thead><tr><th>Company</th><th>Position</th><th>Status</th><th>Applied</th></tr></thead><tbody></tbody></table>
+    <button id="add-row">+ Add Row</button>
+    <button id="export-csv">↧ CSV</button>
+    <div id="grid"></div>
   </section>
 
 <script>
 const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s';
 const API_BASE      = 'https://logmy-app.onrender.com';
-
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-const email = document.getElementById('email');
-const pass  = document.getElementById('password');
-const login = document.getElementById('login-btn');
-const authMsg = document.getElementById('auth-msg');
+let grid;
 
-const inputSection = document.getElementById('input-section');
-const linkBtn = document.getElementById('link-parse-btn');
-const jobUrl  = document.getElementById('job-url');
-const linkMsg = document.getElementById('link-msg');
-
-const confirmForm = document.getElementById('confirm-form');
-const submitMsg = document.getElementById('submit-msg');
-const appsBody  = document.querySelector('#apps-table tbody');
-
-login.addEventListener('click', async () => {
-  authMsg.textContent = 'Logging in…';
-  const { data, error } = await sb.auth.signInWithPassword({
-    email: email.value,
-    password: pass.value
-  });
-  if (error) authMsg.textContent = '❌ ' + error.message;
-  else {
-    authMsg.textContent = '✅';
-    document.getElementById('auth-section').classList.add('hidden');
-    inputSection.classList.remove('hidden');
-    document.getElementById('list-section').classList.remove('hidden');
-    loadApps();
-  }
+// ---------- Auth ----------
+login_btn = document.getElementById('login-btn');
+login_btn.addEventListener('click', async () => {
+  auth_msg = document.getElementById('auth-msg');
+  auth_msg.textContent = 'Logging in…';
+  const { error } = await sb.auth.signInWithPassword({ email: email.value, password: password.value });
+  auth_msg.textContent = error ? '❌ ' + error.message : '✅';
+  if (!error) {
+    auth_section.style.display='none'; input_section.classList.remove('hidden'); sheet_section.classList.remove('hidden'); loadGrid(); }
 });
 
 async function jwt() {
-  const { data } = await sb.auth.getSession();
-  return data.session?.access_token;
+  return (await sb.auth.getSession()).data.session?.access_token;
 }
 
-linkBtn.addEventListener('click', async () => {
-  const url = jobUrl.value.trim();
-  if (!url) return alert('Enter a URL');
-  linkMsg.textContent = 'Fetching…';
-  const res = await fetch(`${API_BASE}/link-parse`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ url })
-  });
+// ---------- URL Parse ----------
+link_parse_btn = document.getElementById('link-parse-btn');
+link_parse_btn.addEventListener('click', async () => {
+  const url = job_url.value.trim(); if(!url) return alert('Enter a URL');
+  link_msg.textContent='Fetching…';
+  const res = await fetch(`${API_BASE}/link-parse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
   const data = await res.json();
-  if (!res.ok) return linkMsg.textContent = '❌ ' + data.error;
-  linkMsg.textContent = '✅ Parsed';
-  [...confirmForm.elements].forEach(el => {
-    if (el.name && data[el.name]) el.value = data[el.name];
-  });
-  confirmForm.classList.remove('hidden');
-  confirmForm.scrollIntoView({behavior:'smooth'});
+  if(!res.ok) return link_msg.textContent='❌ '+data.error;
+  link_msg.textContent='✅ Parsed';
+  [...confirm_form.elements].forEach(el=>{ if(el.name&&data[el.name]) el.value=data[el.name]; });
+  confirm_form.classList.remove('hidden');
 });
 
-confirmForm.addEventListener('submit', async e => {
-  e.preventDefault(); submitMsg.textContent='';
-  const token = await jwt(); if (!token) return alert('login again');
-  const payload = Object.fromEntries(new FormData(confirmForm));
-  const res = await fetch(`${API_BASE}/submit`, {
-    method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
-    body: JSON.stringify(payload)
-  });
+// ---------- Save form ----------
+confirm_form.addEventListener('submit', async e=>{
+  e.preventDefault(); submit_msg.textContent='';
+  const token = await jwt(); if(!token) return alert('login again');
+  const payload = Object.fromEntries(new FormData(confirm_form));
+  const res = await fetch(`${API_BASE}/submit`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
   const out = await res.json();
-  if (res.ok){
-    submitMsg.textContent = '✅ saved';
-    confirmForm.reset(); confirmForm.classList.add('hidden'); jobUrl.value='';
-    loadApps();
-  } else submitMsg.textContent='❌ '+out.error;
+  if(res.ok){ submit_msg.textContent='✅ saved'; confirm_form.reset(); confirm_form.classList.add('hidden'); job_url.value=''; loadGrid(); } else submit_msg.textContent='❌ '+out.error;
 });
 
-async function loadApps(){
-  appsBody.innerHTML='<tr><td colspan=4>Loading…</td></tr>';
-  const { data, error } = await sb.from('applications').select('company,position,status,application_date').order('application_date',{ascending:false});
-  if (error) appsBody.innerHTML='<tr><td colspan=4>'+error.message+'</td></tr>';
-  else if (!data.length) appsBody.innerHTML='<tr><td colspan=4>None yet</td></tr>';
-  else appsBody.innerHTML = data.map(r=>`<tr><td>${r.company}</td><td>${r.position}</td><td>${r.status}</td><td>${r.application_date||''}</td></tr>`).join('');
+// ---------- Tabulator Grid ----------
+async function loadGrid(){
+  const { data, error } = await sb.from('applications').select('*').order('application_date',{ascending:false});
+  if(error){ alert(error.message); return; }
+  grid = new Tabulator('#grid',{
+    height:500,
+    data:data,
+    layout:'fitColumns',
+    reactiveData:true,
+    columns:[
+      {title:'Company', field:'company', editor:'input'},
+      {title:'Position', field:'position', editor:'input'},
+      {title:'Location', field:'location', editor:'input'},
+      {title:'Type', field:'job_type', editor:'select', editorParams:{values:['Internship','Full‑Time','Contract']}},
+      {title:'Applied', field:'application_date', editor:'input'},
+      {title:'Deadline', field:'deadline', editor:'input'},
+      {title:'Status', field:'status', editor:'select', editorParams:{values:['Applied','Interview','Offer','Rejected']}},
+      {title:'Notes', field:'notes', editor:'input'},
+    ],
+    cellEdited: async cell=>{
+      const row = cell.getRow().getData();
+      await sb.from('applications').update(row).eq('id',row.id);
+    }
+  });
 }
+
+add_row = document.getElementById('add-row');
+add_row.addEventListener('click', async ()=>{
+  const blank={company:'',position:'',location:'',job_type:null,application_date:new Date().toISOString().split('T')[0],deadline:null,status:'Applied',notes:null};
+  const { data, error } = await sb.from('applications').insert(blank).select();
+  if(!error){ grid.addData([data[0]], true); }
+});
+
+export_csv = document.getElementById('export-csv');
+export_csv.addEventListener('click', ()=> grid?.download('csv','applications.csv'));
 </script>
 </body>
 </html>
