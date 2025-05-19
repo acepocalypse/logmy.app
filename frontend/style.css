@@ -1,6 +1,5 @@
 /* style.css */
 
-/* --- Base Theme Variables (User's Palette) --- */
 :root {
   --page-bg: #F8FCFB;
   --content-bg: #FFFFFF;
@@ -20,18 +19,16 @@
   --border-radius: 6px;
 }
 
-/* --- Base Body Styles --- */
 body {
   font-family: var(--font-family-sans);
   background-color: var(--page-bg);
   color: var(--text-primary);
-  max-width: 1200px; /* Increased max-width for better grid viewing */
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem 2rem 1rem; /* No top padding if header is sticky */
+  padding: 0 1rem 2rem 1rem;
   line-height: 1.6;
 }
 
-/* --- Header / Navigation Bar --- */
 #app-header {
   background-color: var(--content-bg);
   padding: 0.75rem 1.5rem;
@@ -47,8 +44,8 @@ body {
   box-sizing: border-box;
   left: 0; 
   right: 0;
-  max-width: 1200px; /* Match body's max-width if centered */
-  margin: 0 auto; /* Center header content with body */
+  max-width: 1200px; 
+  margin: 0 auto; 
 }
 
 .logo-container { 
@@ -88,7 +85,6 @@ body {
   font-weight: 600; 
 }
 
-/* --- Main Content Area --- */
 main {
   padding-top: 1rem; 
 }
@@ -97,16 +93,16 @@ main {
   display: none; 
 }
 
-h1 { /* Main application title: logmy.app (when header is hidden) */
+h1 {
   text-align: center; 
   margin-bottom: 2.5rem; 
   font-size: 2.5rem; 
   font-weight: 600; 
   color: var(--accent-primary);
-  margin-top: 0; /* Reset default */
+  margin-top: 0;
 }
 
-h2 { /* Section titles */
+h2 {
   font-size: 1.75rem; 
   font-weight: 500; 
   border-bottom: 1px solid var(--border-color);
@@ -124,7 +120,6 @@ section {
   margin-bottom: 2rem;
 }
 
-/* --- Form Elements --- */
 input[type="email"], 
 input[type="password"], 
 input[type="text"], 
@@ -145,7 +140,7 @@ select {
 
 textarea { 
   line-height: 1.4; 
-  min-height: 80px; /* Give textarea a bit more default height */
+  min-height: 80px; 
 }
 
 label { 
@@ -155,7 +150,6 @@ label {
   color: var(--text-secondary); 
 }
 
-/* --- Buttons --- */
 button {
   display: inline-block; 
   padding: 0.75rem 1.5rem; 
@@ -176,15 +170,12 @@ button.secondary {
   background-color: var(--accent-secondary); 
 }
 
-/* Full width for form main buttons */
 #auth-section button, 
 #confirm-form button[type="submit"], 
 #input-section button {
   width: 100%;
 }
 
-
-/* --- Auth Section Specifics --- */
 #auth-section { 
   max-width: 400px; 
   margin-left: auto; 
@@ -197,7 +188,6 @@ button.secondary {
   margin-bottom: 1.5rem; 
 }
 
-/* --- Sheet Section & AG Grid --- */
 #sheet-section h2 { 
   margin-bottom: 1rem; 
 }
@@ -210,37 +200,6 @@ button.secondary {
   width: auto; 
 }
 
-.delete-row-btn {
-  background-color: var(--error-color) !important; /* Use important if needed to override other button styles */
-  color: white !important;
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 0.3rem 0.6rem; /* Smaller padding for an icon button */
-  font-size: 0.9rem; /* Adjust icon size if needed */
-  line-height: 1; /* Ensure icon is centered */
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-  width: auto; /* Override default full-width button style */
-  margin: 0; /* Reset margins if any were inherited */
-}
-
-.delete-row-btn:hover {
-  background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
-}
-
-/* Ensure AG Grid cells can show the button correctly */
-.ag-theme-quartz .ag-cell {
-    overflow: visible !important; /* Allows button to not be clipped if cell padding is tight */
-}
-/* AG Grid specific overrides can go here if needed */
-/* For example, to ensure the grid itself has a border if desired, beyond the section's box-shadow */
-/*
-#myGrid.ag-theme-quartz {
-  border: 1px solid var(--border-color);
-}
-*/
-
-/* --- Account Page Section --- */
 #account-section { 
   max-width: 600px; 
   margin-left: auto; 
@@ -272,9 +231,7 @@ button.secondary {
   margin-top: 1.5rem;
 }
 
-
-/* --- User Feedback Messages --- */
-.message { /* Base class for all messages */
+.message {
   margin-top: 1rem; 
   padding: 0.75rem 1rem; 
   border-radius: var(--border-radius);
@@ -300,20 +257,45 @@ button.secondary {
   border-color: var(--accent-secondary);
 }
 
-/* --- Utility --- */
 .hidden { 
   display: none !important; 
 }
 
+/* --- Delete Button in AG Grid --- */
+.delete-row-btn {
+  background-color: var(--error-color) !important;
+  color: white !important;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  width: auto;
+  margin: 0;
+}
+.delete-row-btn:hover {
+  background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
+}
+.ag-theme-quartz .ag-cell {
+    overflow: visible !important; /* Allows delete button to not be clipped */
+}
+.grid-link { /* Class for the Job URL link in the grid */
+    color: var(--accent-primary);
+    text-decoration: underline;
+}
+.grid-link:hover {
+    color: var(--accent-primary-hover);
+}
+
+
 /* --- Diagnostic/Fix for "White Square Pop-up" (Focus Styles) --- */
-/* Attempt to globally reset potentially problematic default focus outlines from libraries */
 *:focus, 
 *:focus-visible {
   outline: none !important; 
-  /* box-shadow: none !important; /* Keep this commented unless absolutely necessary for diagnosis */
 }
 
-/* --- Re-apply YOUR desired focus styles with high specificity --- */
 input[type="email"]:focus, 
 input[type="password"]:focus, 
 input[type="text"]:focus, 
@@ -327,8 +309,7 @@ select:focus {
 
 button:focus {
   outline: none !important;
-  background-color: var(--accent-primary-hover) !important; /* Ensure hover and focus are consistent */
-  /* If you want a box-shadow focus for buttons too (can be combined with background change): */
+  background-color: var(--accent-primary-hover) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
 }
 
@@ -337,27 +318,13 @@ button.secondary:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-secondary) 30%, transparent) !important;
 }
 
-#logout-btn:focus { /* Specific focus for logout button if it needs to differ */
-  background-color: color-mix(in srgb, var(--error-color) 70%, black) !important; /* Darker error color */
+#logout-btn:focus {
+  background-color: color-mix(in srgb, var(--error-color) 70%, black) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color) 30%, transparent) !important;
 }
 
 #app-header nav a:focus {
   outline: none !important;
   color: var(--accent-primary) !important;
-  /* Using a box-shadow for focus on nav links - adjust as needed */
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
-  /* border-bottom-color: transparent !important; /* Keep active style if also focused */
 }
-
-/* If AG Grid cells or headers are getting a weird focus, you might need specific AG Grid selectors. */
-/* The ag-theme-quartz should handle focus well, but if overrides are needed: */
-/*
-.ag-theme-quartz .ag-cell-focus {
-  outline: none !important;
-  border: 1px solid var(--accent-primary) !important; 
-}
-.ag-theme-quartz .ag-header-cell-focus .ag-header-cell-label {
-   outline: none !important;
-}
-*/
