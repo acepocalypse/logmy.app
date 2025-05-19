@@ -1,0 +1,227 @@
+/* --- Base Theme Variables (Color Palette) --- */
+:root {
+  --page-bg: #F8FCFB;                 /* Very Light Alice Blue/Mint tint for the overall page */
+  --content-bg: #FFFFFF;              /* Pure white for content cards/sections for contrast */
+  
+  --text-primary: #333333;            /* Dark grey for main text (good contrast) */
+  --text-secondary: #777777;          /* Lighter grey for placeholders, secondary info */
+
+  --accent-primary: #6892D5;          /* Cool Blue for primary buttons & interactive elements */
+  --accent-primary-hover: #577ABF;    /* A slightly darker shade of Cool Blue for hover */
+  
+  --accent-secondary: #79D1C3;        /* Opal for secondary actions, highlights, or icons */
+  --accent-secondary-hover: #63B9A9;  /* A slightly darker shade of Opal for hover */
+
+  --success-bg: #C9FDD7;              /* Celadon tint for background of success messages */
+  --success-text: #2A7556;            /* A darker green/teal for text on success background */
+  
+  --error-color: #D32F2F;             /* A slightly more modern red for error text */
+  --error-bg: #FEECEB;                /* Light red background for error messages */
+
+  --border-color: #DCE0E6;            /* A neutral light grey for borders that complements the palette */
+  --input-bg: #FFFFFF;                /* White background for input fields */
+  
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* Or 'Geist Sans', sans-serif if available from Geist UI */
+  --border-radius: 6px;               /* Consistent border radius */
+}
+
+/* --- Base Body Styles --- */
+body {
+  font-family: var(--font-family-sans);
+  background-color: var(--page-bg);
+  color: var(--text-primary);
+  max-width: 900px; /* Adjust as needed for overall layout */
+  margin: 0 auto; /* Center content */
+  padding: 2rem 1rem; /* Breathing room around the main content area */
+  line-height: 1.6; /* Improve readability */
+}
+
+/* --- Headings --- */
+h1, h2 {
+  color: var(--text-primary); /* Default heading color */
+  margin-top: 0; /* Remove default top margin for consistency */
+  margin-bottom: 1rem;
+}
+
+h1 { /* Main application title: logmy.app */
+  text-align: center;
+  margin-bottom: 2.5rem; /* More space below main title */
+  font-size: 2.5rem; /* Slightly larger */
+  font-weight: 600;
+  color: var(--accent-primary); /* Using Cool Blue for the main title for branding */
+}
+
+h2 { /* Section titles: Sign In, Paste Job-Posting URL, etc. */
+  font-size: 1.75rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color); /* Subtle separator */
+  padding-bottom: 0.5rem;
+  margin-top: 2rem; /* Space above section titles */
+  /* color: var(--accent-secondary); /* Optional: Use secondary accent for section titles */
+}
+
+/* --- Section Styling --- */
+section {
+  background-color: var(--content-bg);
+  padding: 1.5rem 2rem; /* More padding within sections */
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+  margin-bottom: 2rem; /* Space between sections */
+}
+
+/* --- Form Elements: Inputs, Selects, Labels --- */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="date"],
+input[name="company"], /* Targeting specific inputs from your form */
+input[name="position"],
+input[name="location"],
+input[name="job_url"],
+input[name="notes"],
+select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem; /* Space below each input/select */
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-sizing: border-box; /* Ensures padding and border don't increase total width */
+  font-size: 1rem;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[name="company"]:focus,
+input[name="position"]:focus,
+input[name="location"]:focus,
+input[name="job_url"]:focus,
+input[name="notes"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-primary); /* Cool Blue for focus */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); /* Subtle focus ring using Cool Blue */
+}
+
+label {
+  display: block; /* Makes label take full width, input appears on next line */
+  margin-bottom: 0.5rem; /* Space between label and input */
+  font-weight: 500;
+  color: var(--text-secondary); /* Slightly muted label text */
+}
+
+/* --- Buttons --- */
+button {
+  display: inline-block; /* Or 'block' if you always want them full width */
+  width: 100%; /* Default to full width for form buttons */
+  padding: 0.75rem 1.5rem;
+  background-color: var(--accent-primary); /* Cool Blue for primary buttons */
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 0.5rem; /* Space above buttons when they follow inputs */
+  margin-bottom: 0.5rem; /* Consistent spacing around buttons */
+}
+
+button:hover,
+button:focus { /* Combined hover and focus for visual consistency */
+  background-color: var(--accent-primary-hover); /* Darker Cool Blue on hover/focus */
+  outline: none; /* Remove default focus outline if custom shadow is preferred or not needed */
+}
+
+/* Example of a secondary button style (add class="secondary" to button HTML) */
+button.secondary {
+  background-color: var(--accent-secondary); /* Opal */
+  color: white; /* Ensure text is readable on this background */
+}
+button.secondary:hover,
+button.secondary:focus {
+  background-color: var(--accent-secondary-hover); /* Darker Opal */
+}
+
+/* --- Auth Section Specifics --- */
+#auth-section {
+  max-width: 400px; /* Constrain width for a standard auth form appearance */
+  margin-left: auto;  /* Center the auth section */
+  margin-right: auto; /* Center the auth section */
+  margin-top: 2rem; /* Add some space from the top or previous content */
+}
+
+#auth-section h2 { /* "Sign In" title */
+  text-align: center;
+  border-bottom: none; /* Remove border if card provides enough separation */
+  margin-bottom: 1.5rem; /* More space below "Sign In" */
+}
+
+/* --- User Feedback Messages (Auth, Link Parse, Submit) --- */
+#auth-msg, 
+#link-msg, 
+#submit-msg {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem; /* More padding for messages */
+  border-radius: var(--border-radius);
+  text-align: center;
+  min-height: 1.2em; /* Prevent layout shift when text content changes */
+  font-weight: 500;
+  border: 1px solid transparent; /* Base border */
+}
+
+/* Assumes you add .success or .error class via JavaScript */
+#auth-msg.success, 
+#link-msg.success, 
+#submit-msg.success {
+  background-color: var(--success-bg); /* Celadon tint background */
+  color: var(--success-text);          /* Darker green text */
+  border-color: color-mix(in srgb, var(--success-text) 30%, transparent); /* Subtle border matching text */
+}
+
+#auth-msg.error, 
+#link-msg.error, 
+#submit-msg.error {
+  background-color: var(--error-bg); /* Light red background */
+  color: var(--error-color);         /* Error red text */
+  border-color: color-mix(in srgb, var(--error-color) 30%, transparent); /* Subtle border matching text */
+}
+
+/* --- Utility --- */
+.hidden {
+  display: none !important; /* Ensure it overrides other display properties if needed */
+}
+
+/* --- Tabulator Grid --- */
+/* Remove default border from #grid if section's box-shadow is enough */
+#grid { 
+  margin-top: 1.5rem; 
+  /* border: 1px solid var(--border-color); /* Optional: if you want a border directly on the grid container */
+}
+
+/* You might want to further customize Tabulator's theme to match your palette.
+   Tabulator uses its own class names. You'd inspect the rendered table 
+   and override styles for .tabulator, .tabulator-header, .tabulator-row, etc.
+   For example:
+   .tabulator {
+     border-color: var(--border-color);
+     border-radius: var(--border-radius);
+     background-color: var(--content-bg);
+   }
+   .tabulator .tabulator-header {
+     background-color: color-mix(in srgb, var(--page-bg) 70%, var(--content-bg)); Color from page bg but lighter
+     color: var(--text-primary);
+     border-bottom-color: var(--border-color);
+   }
+   .tabulator .tabulator-row {
+     background-color: var(--content-bg);
+   }
+   .tabulator .tabulator-row:hover {
+     background-color: color-mix(in srgb, var(--page-bg) 50%, var(--content-bg));
+   }
+*/
