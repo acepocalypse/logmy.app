@@ -23,6 +23,7 @@
   --grid-cell-max-lines: 2;    /* Define max lines for grid cells */
   --grid-header-bg: color-mix(in srgb, var(--page-bg) 70%, var(--content-bg)); /* Slightly different bg for header/filters */
   --grid-filter-height: 38px; /* Define a consistent height for filter inputs */
+  --input-button-group-max-width: 500px; /* Max width for the URL input group */
 }
 
 body {
@@ -147,7 +148,7 @@ select {
 
 textarea {
   line-height: 1.4;
-  min-height: 80px;
+  min-height: 80px; /* Textarea can be taller */
 }
 
 label {
@@ -158,7 +159,9 @@ label {
 }
 
 button {
-  display: inline-block;
+  display: inline-flex; /* For vertical centering of text */
+  align-items: center;
+  justify-content: center;
   padding: 0.75rem 1.5rem;
   background-color: var(--accent-primary);
   color: white;
@@ -168,24 +171,24 @@ button {
   font-weight: 500;
   cursor: pointer;
   text-align: center;
-  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   min-height: var(--grid-filter-height); /* Consistent height for buttons */
-  display: inline-flex; /* For vertical centering of text */
-  align-items: center;
-  justify-content: center;
+  box-sizing: border-box; /* Ensure padding doesn't add to height beyond min-height */
 }
 
 button.secondary {
   background-color: var(--accent-secondary);
 }
 
+/* Width adjustments for buttons in specific sections */
 #auth-section button,
-#confirm-form button[type="submit"],
-#input-section button {
-  width: 100%;
+#confirm-form button[type="submit"] {
+  width: 100%; /* These buttons remain full width of their parent section */
 }
+/* #input-section button width is handled by .input-button-group */
+
 
 #auth-section {
   max-width: 400px;
@@ -199,6 +202,30 @@ button.secondary {
   margin-bottom: 1.5rem;
 }
 
+/* Styles for the URL input and Fetch button group */
+#input-section h2 { /* Center the heading of the input section */
+    text-align: center;
+    border-bottom: none; /* Remove border if not desired for this heading */
+    margin-bottom: 1.5rem; /* Consistent margin with other h2 */
+}
+.input-button-group {
+  max-width: var(--input-button-group-max-width); /* Use CSS variable */
+  margin: 0 auto 1rem auto; /* Center the group and add bottom margin */
+}
+.input-button-group #job-url,
+.input-button-group #link-parse-btn {
+  width: 100%; /* Input and button take full width of the group */
+  box-sizing: border-box;
+}
+.input-button-group #job-url {
+  margin-bottom: 0.75rem; /* Space between input and button */
+}
+.input-button-group #link-parse-btn {
+  margin-top: 0; /* Remove any default top margin from general button styles */
+  margin-bottom: 0; /* Remove any default bottom margin */
+}
+
+
 #sheet-section h2 {
   margin-bottom: 1rem;
 }
@@ -209,7 +236,7 @@ button.secondary {
   align-items: center; /* Align items vertically */
 }
 .sheet-actions button {
-  width: auto;
+  width: auto; /* Buttons in sheet actions are not full width */
 }
 
 #account-section {
@@ -236,7 +263,6 @@ button.secondary {
 #logout-btn {
   background-color: var(--error-color);
   width: auto;
-  display: block; /* Will be overridden by inline-flex from general button if not specific enough */
   margin-left: auto;
   margin-right: auto;
   padding: 0.75rem 2rem;
@@ -248,14 +274,19 @@ button.secondary {
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius);
   text-align: center;
-  min-height: 1.2em; /* Ensure space even if empty */
+  min-height: calc(var(--grid-filter-height) + 4px); /* Make message boxes similar height to inputs/buttons */
+  display: flex; /* For vertical centering of text */
+  align-items: center;
+  justify-content: center;
   font-weight: 500;
   border: 1px solid transparent;
   box-sizing: border-box;
   transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }
 .message:empty {
-    /* opacity: 0; */
+   padding: 0; /* Remove padding if empty to truly collapse with min-height */
+   border: none;
+   background-color: transparent;
 }
 .message.success {
   background-color: var(--success-bg);
@@ -279,62 +310,62 @@ button.secondary {
 
 /* --- AG Grid Specific Styles --- */
 
-/* Default AG Grid cell styling */
 .ag-theme-quartz .ag-cell {
     display: flex;
-    align-items: center; /* Vertically center content */
-    padding-left: 8px; /* Add some default padding to cells */
+    align-items: center;
+    padding-left: 8px;
     padding-right: 8px;
+    box-sizing: border-box;
 }
-.ag-theme-quartz .ag-cell[col-id="id"] { /* Target action column specifically for delete button */
-    justify-content: center; /* Horizontally center the button in its cell */
-    padding-left: 4px; /* Reduce padding for icon column */
+.ag-theme-quartz .ag-cell[col-id="id"] { /* Actions column */
+    justify-content: center;
+    padding-left: 4px;
     padding-right: 4px;
 }
 
-
-/* Style for cell content: limit text to two lines and allow horizontal scrolling */
 .ag-theme-quartz .ag-cell-value {
   white-space: normal;
   line-height: var(--grid-cell-line-height);
   max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em);
   overflow-y: hidden;
-  overflow-x: auto;   /* This enables horizontal scroll WITHIN the cell if content overflows */
-  /* padding-right: 8px; /* Padding is now on .ag-cell */
+  overflow-x: auto;
   box-sizing: border-box;
-  width: 100%; /* Ensure cell value takes full width of cell padding box */
+  width: 100%; /* Ensure it uses the cell's available width */
 }
 
-/* Ensure header text can also wrap if needed and looks good */
 .ag-theme-quartz .ag-header-cell-label {
     white-space: normal !important;
     text-overflow: ellipsis;
     overflow: hidden;
     line-height: var(--grid-cell-line-height);
-    padding: 8px 6px; /* More padding for header text */
-    font-weight: 500; /* Slightly bolder header text */
+    padding: 8px 6px; /* Increased padding for header text */
+    font-weight: 500;
+    box-sizing: border-box;
+    display: flex; /* For vertical centering */
+    align-items: center;
+    height: 100%; /* Take full height of header cell */
 }
-.ag-theme-quartz .ag-header-row { /* Style for the entire header row */
+.ag-theme-quartz .ag-header-row {
     background-color: var(--grid-header-bg);
-    border-bottom: 1px solid var(--border-color); /* Stronger separator below header */
+    border-bottom: 1px solid var(--border-color);
 }
-.ag-theme-quartz .ag-header-cell { /* Style for individual header cells */
-    border-right: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); /* Softer separator */
-    padding: 0; /* Remove default AG Grid header cell padding, control with label padding */
+.ag-theme-quartz .ag-header-cell {
+    border-right: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    padding: 0; /* AG Grid header cells have internal structure; padding on label is better */
+    /* height: calc(var(--grid-filter-height) + 10px); /* Ensure header cells are tall enough */
 }
 .ag-theme-quartz .ag-header-cell:last-child {
-    border-right: none; /* Remove separator from the last header cell */
+    border-right: none;
 }
 
-
 /* Style for Floating Filter Row inputs to make them more elegant */
-.ag-theme-quartz .ag-floating-filter-input input, /* Standard text filter */
-.ag-theme-quartz .ag-floating-filter-input select, /* For set filters if they use a select */
+.ag-theme-quartz .ag-floating-filter-input input,
+.ag-theme-quartz .ag-floating-filter-input select,
 .ag-theme-quartz .ag-custom-filter input[type="text"], /* For date filter input part */
 .ag-theme-quartz .ag-floating-filter-button {
     font-family: var(--font-family-sans);
     font-size: 0.9rem;
-    padding: 0.5rem 0.8rem; /* Increased padding for more height */
+    padding: 0 0.8rem; /* Adjusted padding, height will control vertical space */
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     background-color: var(--input-bg);
@@ -342,17 +373,19 @@ button.secondary {
     width: 100%;
     box-sizing: border-box;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    height: var(--grid-filter-height); /* Explicit height for filter inputs */
-    min-height: var(--grid-filter-height); /* Ensure it respects this height */
-    display: block; /* Ensure it takes full width and respects height */
+    height: var(--grid-filter-height);
+    min-height: var(--grid-filter-height);
+    display: block; /* Or inline-block if side-by-side elements are needed within */
+    line-height: var(--grid-filter-height); /* Vertically center text in input */
 }
 
 /* Specifically target the input within the date filter component */
 .ag-theme-quartz .ag-filter-filter.ag-date-filter input[type="text"] {
     height: var(--grid-filter-height);
     min-height: var(--grid-filter-height);
-    padding: 0.5rem 0.8rem;
+    padding: 0 0.8rem; /* Match other filter inputs */
     font-size: 0.9rem;
+    line-height: var(--grid-filter-height);
 }
 
 
@@ -366,15 +399,16 @@ button.secondary {
 
 .ag-theme-quartz .ag-floating-filter-button { /* e.g., clear button or dropdown for set filter */
     background-color: transparent;
-    border: none;
+    border: none; /* Remove border if it's a button next to an input */
     color: var(--text-secondary);
     cursor: pointer;
     height: var(--grid-filter-height);
     min-height: var(--grid-filter-height);
-    padding: 0 0.5rem; /* Adjust padding for buttons */
+    padding: 0 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 .ag-theme-quartz .ag-floating-filter-button:hover {
     color: var(--accent-primary);
@@ -382,22 +416,31 @@ button.secondary {
 /* Wrapper for the filter input and its button (if any, like clear button) */
 .ag-theme-quartz .ag-floating-filter-input {
     display: flex;
-    align-items: center;
+    align-items: center; /* Vertically align input and any side buttons */
+    width: 100%; /* Ensure wrapper takes full width */
 }
 .ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper { /* AG Grid often wraps inputs */
-    width: 100%;
+    flex-grow: 1; /* Allow input part to take available space */
+    display: flex; /* For better control of input within */
+}
+.ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper input {
+    line-height: normal; /* Reset line-height for input if parent's line-height is too large */
+    padding-top: 0.5rem; /* Re-apply specific padding if line-height trick doesn't work well */
+    padding-bottom: 0.5rem;
 }
 
 
 .ag-theme-quartz .ag-floating-filter-body { /* Container for the input within the filter cell */
     padding: 6px 4px; /* Add some padding around the filter input within its cell */
-    display: flex; /* Help center content if cell is taller */
-    align-items: center;
+    display: flex;
+    align-items: center; /* Vertically center the filter component in the cell */
+    height: 100%; /* Ensure body takes full height of filter row */
 }
 .ag-theme-quartz .ag-header-cell-comp-wrapper .ag-floating-filter { /* The entire filter row */
     background-color: var(--grid-header-bg);
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); /* Softer separator line above filters */
-    /* min-height: calc(var(--grid-filter-height) + 12px); /* Ensure filter row is tall enough */
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    min-height: calc(var(--grid-filter-height) + 12px); /* Ensure filter row is tall enough for padding */
+    box-sizing: border-box;
 }
 
 
@@ -411,9 +454,9 @@ button.secondary {
   line-height: 1;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-  width: auto; /* Fit content */
-  min-width: 36px; /* Ensure a minimum clickable area */
-  height: calc(var(--grid-filter-height) - 8px); /* Make it slightly smaller than filter inputs */
+  width: auto;
+  min-width: 36px;
+  height: calc(var(--grid-filter-height) - 8px);
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -438,14 +481,11 @@ button.secondary {
     color: var(--accent-primary-hover);
 }
 
-
-/* --- Diagnostic Fix for "White Square Pop-up" (Focus Styles) --- */
 *:focus,
 *:focus-visible {
   outline: none !important;
 }
 
-/* Custom focus styles for form elements for better accessibility and UX */
 input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="text"]:focus,
@@ -477,7 +517,6 @@ button.secondary:focus {
   box-shadow: 0 2px 0 0 var(--accent-primary) inset !important;
 }
 
-/* AG Grid specific focus - ensure it doesn't interfere or add back unwanted outlines */
 .ag-theme-quartz .ag-cell-focus {
     border-color: transparent !important;
     background-color: color-mix(in srgb, var(--accent-primary) 8%, transparent) !important;
@@ -485,5 +524,5 @@ button.secondary:focus {
 
 #myGrid {
     width: 100%;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Attempt to hide main grid scrollbar, relies on JS column config */
 }

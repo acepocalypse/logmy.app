@@ -43,8 +43,10 @@
 
     <section id="input-section" class="hidden">
       <h2>Paste Job‑Posting URL</h2>
-      <input id="job-url" placeholder="https://job-posting-link.com/..." />
-      <button id="link-parse-btn">Fetch & Parse</button>
+      <div class="input-button-group">
+        <input id="job-url" placeholder="https://job-posting-link.com/..." />
+        <button id="link-parse-btn">Fetch & Parse</button>
+      </div>
       <p id="link-msg" class="message"></p>
     </section>
 
@@ -105,7 +107,7 @@ let gridApi = null;
 // DOM Elements
 const email_input = document.getElementById('email');
 const password_input = document.getElementById('password');
-const job_url_input = document.getElementById('job-url');
+const job_url_input = document.getElementById('job-url'); // This is the input box
 const app_header = document.getElementById('app-header');
 const main_title = document.getElementById('main-title');
 const auth_section = document.getElementById('auth-section');
@@ -120,7 +122,7 @@ const submit_msg = document.getElementById('submit-msg');
 const user_email_display = document.getElementById('user-email-display');
 const login_btn = document.getElementById('login-btn');
 const logout_btn = document.getElementById('logout-btn');
-const link_parse_btn = document.getElementById('link-parse-btn');
+const link_parse_btn = document.getElementById('link-parse-btn'); // This is the button
 const add_row_btn = document.getElementById('add-row');
 const export_csv_btn = document.getElementById('export-csv');
 const nav_applications_link = document.getElementById('nav-applications');
@@ -260,63 +262,54 @@ confirm_form.addEventListener('submit', async e => {
 });
 
 // --- AG Grid Column Definitions ---
-// Adjusted minWidth and flex properties to better manage column widths and prevent horizontal scrolling.
 const columnDefs = [
   {
     headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter',
     sortable: true, resizable: true, suppressMenu: true,
     wrapText: true, autoHeight: true,
-    minWidth: 140, // Slightly reduced
-    flex: 2 // Allow more flex for company name
+    minWidth: 140, flex: 2
   },
   {
     headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter',
     sortable: true, resizable: true, suppressMenu: true,
     wrapText: true, autoHeight: true,
-    minWidth: 140, // Slightly reduced
-    flex: 2 // Allow more flex for position title
+    minWidth: 140, flex: 2
   },
   {
     headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter',
     sortable: true, resizable: true, suppressMenu: true,
     wrapText: true, autoHeight: true,
-    minWidth: 120, // Reduced
-    flex: 1
+    minWidth: 120, flex: 1
   },
   {
     headerName: 'Type', field: 'job_type', editable: true, cellEditor: 'agSelectCellEditor',
     cellEditorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part‑Time'] },
     filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 100, // Reduced
-    flex: 1
+    minWidth: 100, flex: 1
   },
   {
     headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter',
     sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
     filterParams: { comparator: dateFilterComparator }, suppressMenu: true,
-    minWidth: 110, // Reduced for date
-    flex: 1
+    minWidth: 110, flex: 1
   },
   {
     headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter',
     sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
     filterParams: { comparator: dateFilterComparator }, suppressMenu: true,
-    minWidth: 110, // Reduced for date
-    flex: 1
+    minWidth: 110, flex: 1
   },
   {
     headerName: 'Status', field: 'status', editable: true, cellEditor: 'agSelectCellEditor',
     cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] },
     filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 110, // Reduced
-    flex: 1
+    minWidth: 110, flex: 1
   },
   {
     headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor',
     cellEditorPopup: true, resizable: true, suppressMenu: true,
     wrapText: true, autoHeight: true,
-    minWidth: 150, // Notes can be wider
-    flex: 2
+    minWidth: 150, flex: 2
   },
   {
     headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false,
@@ -328,16 +321,23 @@ const columnDefs = [
       return '';
     },
     editable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true, // Allow URL cell to wrap if displaying full URL
-    minWidth: 80,  // Reduced for "View" link, can be small
-    flex: 0.5     // Less flex for the URL link column
+    wrapText: true, autoHeight: true,
+    minWidth: 80,  flex: 0.5
   },
   {
     headerName: 'Actions',
-    field: 'id', // Assuming 'id' is the field for actions, though not directly displayed
-    width: 70,   // Fixed width, slightly reduced
+    field: 'id',
+    width: 70,
     pinned: 'right',
-    cellRenderer: params => { /* ... (same as before) ... */ },
+    cellRenderer: params => {
+      const button = document.createElement('button');
+      button.classList.add('delete-row-btn');
+      button.innerHTML = '&#x1F5D1;';
+      button.title = 'Delete Application';
+      button.style.lineHeight = '1';
+      button.addEventListener('click', () => handleDeleteRow(params.node.data));
+      return button;
+    },
     editable: false, sortable: false, filter: false, resizable: false, suppressMenu: true
   }
 ];
@@ -358,8 +358,7 @@ const gridOptions = {
   rowData: null,
   domLayout: 'normal',
   defaultColDef: {
-    // flex: 1, // Default flex is now set per column for finer control
-    minWidth: 90, // A smaller global default minWidth
+    minWidth: 90,
     floatingFilter: true,
     resizable: true,
     sortable: true,
@@ -372,21 +371,29 @@ const gridOptions = {
   rowSelection: 'single',
   getRowId: params => params.data.id,
   deltaRowDataMode: true,
-  onCellValueChanged: async (event) => { /* ... (same as before) ... */ },
+  onCellValueChanged: async (event) => {
+    const updatedRow = event.data;
+    if (updatedRow.application_date === '' || updatedRow.application_date === null) updatedRow.application_date = null;
+    if (updatedRow.deadline === '' || updatedRow.deadline === null) updatedRow.deadline = null;
+    const { agGridId, ...rowToUpdate } = updatedRow;
+    const { error: updateError } = await sb.from('applications').update(rowToUpdate).eq('id', rowToUpdate.id);
+    if (updateError) {
+      displayMessage(submit_msg, `Failed to update row: ${updateError.message}`, 'error');
+      console.error("Supabase update error:", updateError);
+    } else {
+      console.log("Row updated successfully:", rowToUpdate);
+    }
+   },
   onGridReady: async (params) => {
     gridApi = params.api;
     console.log("AG Grid API ready.");
     if (currentUser) {
       await fetchAndSetGridData();
     }
-    // Optional: Size columns to fit after data load.
-    // However, with flex, this might not be strictly necessary or could be counterproductive
-    // if you want columns to maintain their flex ratios.
-    // params.api.sizeColumnsToFit();
   }
 };
 
-// Data Handling for AG Grid (same as before)
+// Data Handling for AG Grid
 async function fetchAndSetGridData() {
   if (!gridApi) { console.log("Grid API not ready for fetchAndSetGridData."); return; }
   console.log("Fetching data for grid...");
