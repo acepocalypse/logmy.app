@@ -132,9 +132,6 @@ section {
     max-width: 400px;
     margin: 2rem auto; /* Center it */
 }
-#auth-section { /* Keep existing auth section styles if any specific ones were there */
-    /* padding: 1.5rem 2rem; already on general section */
-}
 #auth-section h2 { /* Auth title (Sign In / Sign Up) */
   text-align: center;
   border-bottom: none;
