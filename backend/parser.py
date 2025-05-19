@@ -1,29 +1,16 @@
-"""
-parser.py – spaCy‑powered job‑posting parser
-===========================================
-Adds DEBUG‑level log statements so you can watch extraction steps in
-Render’s logs or local console.  **No functional changes.**
-"""
 import re
 import time
 import logging
 
 import dateparser
-import spacy
-from spacy.language import Language
+# import spacy # No longer load spacy here, it's passed in
+# from spacy.language import Language # Not needed if nlp object is passed
 
 # ---------------------------------------------------------------------------
 # Logging setup
 # ---------------------------------------------------------------------------
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s [parser] %(message)s")
-logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Load spaCy English model once at import time
-# ---------------------------------------------------------------------------
-logger.debug("Loading spaCy model 'en_core_web_sm' …")
-NLP: Language = spacy.load("en_core_web_sm")
-logger.debug("spaCy model loaded.")
+# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s [parser] %(message)s") # Configured in app.py
+logger = logging.getLogger(__name__) # Use Flask's app.logger or configure separately if run standalone
 
 # ---------------------------------------------------------------------------
 # Regex helpers
@@ -40,58 +27,92 @@ DEADLINE_RE = re.compile(r"(?:Apply\s*by|Deadline)[:\-]?\s*([^\n]+)", re.I)
 def _extract_deadline(text: str) -> str:
     m = DEADLINE_RE.search(text)
     if m:
-        parsed = dateparser.parse(m.group(1), settings={"PREFER_DATES_FROM": "future"})
-        if parsed:
-            return parsed.date().isoformat()
+        try:
+            parsed = dateparser.parse(m.group(1).strip(), settings={"PREFER_DATES_FROM": "future", "STRICT_PARSING": False})
+            if parsed:
+                return parsed.date().isoformat()
+        except Exception as e:
+            logger.warning(f"Dateparser failed for deadline string '{m.group(1).strip()}': {e}")
+        # Fallback to the raw string if parsing fails or returns None
         return m.group(1).strip()
     return ""
 
 
-def _extract_company(doc):
+def _extract_company(doc): # doc is now a spaCy Doc object
     m = COMPANY_RE.search(doc.text)
     if m:
         return m.group(1).strip()
     for ent in doc.ents:
         if ent.label_ == "ORG":
-            return ent.text
+            return ent.text.strip()
     return ""
 
 
-def _extract_location(doc):
+def _extract_location(doc): # doc is now a spaCy Doc object
     m = LOCATION_RE.search(doc.text)
     if m:
         return m.group(1).strip()
-    for ent in doc.ents:
-        if ent.label_ in ("GPE", "LOC"):
-            return ent.text
+    # Prioritize GPE (Geopolitical Entity) over LOC (Location, less specific)
+    gpe_entities = [ent.text.strip() for ent in doc.ents if ent.label_ == "GPE"]
+    if gpe_entities:
+        return ", ".join(gpe_entities) # Join if multiple GPEs found (e.g., "City, State")
+    
+    loc_entities = [ent.text.strip() for ent in doc.ents if ent.label_ == "LOC"]
+    if loc_entities:
+        return ", ".join(loc_entities)
     return ""
 
 
-def _extract_position(doc):
+def _extract_position(doc): # doc is now a spaCy Doc object
     m = POSITION_RE.search(doc.text)
     if m:
         return m.group(1).strip()
-    slice_doc = doc[: min(50, len(doc))]
-    noun_chunks = sorted(slice_doc.noun_chunks, key=lambda nc: -len(nc.text))
+    
+    # Look for noun chunks that might be job titles, especially near the beginning
+    # Consider patterns like "Job Title:", "Position:", or capitalized phrases
+    # This is a simple heuristic, more advanced title extraction is complex
+    
+    # Try to find noun chunks that are likely titles (e.g., capitalized, contain keywords)
+    possible_titles = []
+    for chunk in doc[:min(100, len(doc))].noun_chunks: # Search in the first 100 tokens
+        text = chunk.text.strip()
+        if len(text.split()) <= 5 and any(word.istitle() or word.isupper() for word in text.split()): # Heuristic: up to 5 words, some capitalized
+            if any(kw in text.lower() for kw in ["intern", "analyst", "engineer", "developer", "manager", "specialist", "coordinator"]):
+                possible_titles.append(text)
+    
+    if possible_titles:
+        # Prefer shorter, more specific titles if multiple are found
+        return min(possible_titles, key=len)
+
+    # Fallback to the largest noun chunk in the beginning if no better title found
+    slice_doc = doc[: min(50, len(doc))] # Search in first 50 tokens
+    noun_chunks = sorted([nc.text.strip() for nc in slice_doc.noun_chunks if len(nc.text.strip().split()) <= 5], key=len, reverse=True)
     if noun_chunks:
-        return noun_chunks[0].text.strip()
+        return noun_chunks[0]
+        
     return ""
 
 # ---------------------------------------------------------------------------
 # Public parse() function
 # ---------------------------------------------------------------------------
 
-def parse(text: str) -> dict:
+def parse(text: str, nlp_model) -> dict: # Accept nlp_model as argument
     """Return dict with keys company, position, location, deadline."""
-    logger.debug(f"parse() called with text length={len(text)} | preview={text[:120]!r}")
-    start = time.perf_counter()
-    doc = NLP(text)
+    if not nlp_model:
+        logger.error("NLP model is None, cannot perform parsing.")
+        return {"company": "", "position": "", "location": "", "deadline": ""}
+
+    logger.debug(f"parser.parse() called with text length={len(text)} | preview={text[:120]!r}")
+    start_time = time.perf_counter()
+    
+    doc = nlp_model(text) # Use the passed-in nlp_model
+    
     result = {
         "company":  _extract_company(doc),
         "position": _extract_position(doc),
         "location": _extract_location(doc),
-        "deadline": _extract_deadline(text),
+        "deadline": _extract_deadline(text), # Deadline parsing doesn't always need the full doc
     }
-    elapsed_ms = (time.perf_counter() - start) * 1000
-    logger.debug("Extracted %s in %.1f ms", result, elapsed_ms)
+    elapsed_ms = (time.perf_counter() - start_time) * 1000
+    logger.debug(f"Parser extracted {result} in {elapsed_ms:.1f} ms")
     return result
