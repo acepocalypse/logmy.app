@@ -1,3 +1,5 @@
+/* style.css */
+
 :root {
   --page-bg: #F8FCFB;
   --content-bg: #FFFFFF;
@@ -13,10 +15,13 @@
   --error-bg: #FEECEB;
   --border-color: #DCE0E6;
   --input-bg: #FFFFFF;
+  --input-focus-border: var(--accent-primary); /* For consistent focus on inputs */
+  --input-focus-shadow: color-mix(in srgb, var(--accent-primary) 20%, transparent); /* For consistent focus shadow */
   --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --border-radius: 6px;
   --grid-cell-line-height: 1.4; /* Define line height for grid cells for consistency */
   --grid-cell-max-lines: 2;    /* Define max lines for grid cells */
+  --grid-header-bg: color-mix(in srgb, var(--page-bg) 50%, var(--content-bg)); /* Slightly different bg for header/filters */
 }
 
 body {
@@ -161,7 +166,7 @@ button {
   font-weight: 500;
   cursor: pointer;
   text-align: center;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -241,11 +246,10 @@ button.secondary {
   font-weight: 500;
   border: 1px solid transparent;
   box-sizing: border-box;
-  /* Added transition for smoother appearance/disappearance if content changes */
   transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }
-.message:empty { /* Hide if empty, but min-height will keep space */
-    /* opacity: 0; */ /* Or display: none; if you don't want the space */
+.message:empty {
+    /* opacity: 0; */
 }
 .message.success {
   background-color: var(--success-bg);
@@ -271,77 +275,120 @@ button.secondary {
 
 /* Default AG Grid cell styling */
 .ag-theme-quartz .ag-cell {
-    /* AG Grid's default padding is usually sensible.
-       If text looks too cramped with the scrollbars or new line height,
-       you can adjust padding here. e.g., padding: 2px 4px; */
-    /* line-height is now primarily controlled by .ag-cell-value for content */
-    display: flex; /* Helps with vertical alignment if needed, though autoHeight usually handles it */
-    align-items: center; /* Vertically center content if row is taller than content */
+    display: flex;
+    align-items: center; /* Vertically center content */
+    /* For the delete button column, we'll add horizontal centering */
 }
+.ag-theme-quartz .ag-cell[col-id="id"] { /* Target action column specifically for delete button */
+    justify-content: center; /* Horizontally center the button in its cell */
+}
+
 
 /* Style for cell content: limit text to two lines and allow horizontal scrolling */
 .ag-theme-quartz .ag-cell-value {
-  white-space: normal; /* Allow text to wrap, works with wrapText:true in colDef */
-  line-height: var(--grid-cell-line-height); /* Use CSS variable for line height */
-  max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em); /* Max height for specified lines (1em is ~font-size) */
-  overflow-y: hidden;  /* Hide vertical overflow beyond the max-height */
-  overflow-x: auto;    /* Allow horizontal scrolling for any line wider than the cell */
-  padding-right: 8px;  /* Add some padding so scrollbar doesn't hide text content if it appears */
+  white-space: normal;
+  line-height: var(--grid-cell-line-height);
+  max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em);
+  overflow-y: hidden;
+  overflow-x: auto;   /* This enables horizontal scroll WITHIN the cell if content overflows */
+  padding-right: 8px;
   box-sizing: border-box;
-  /* The following properties for line clamping are an alternative if autoHeight doesn't behave
-     well with overflow-x and you prefer ellipsis. However, it conflicts with overflow-x: auto.
-     We are prioritizing overflow-x: auto here based on the request.
-  */
-  /*
-  display: -webkit-box;
-  -webkit-line-clamp: var(--grid-cell-max-lines);
-  -webkit-box-orient: vertical;
-  text-overflow: ellipsis;
-  */
 }
 
 /* Ensure header text can also wrap if needed and looks good */
 .ag-theme-quartz .ag-header-cell-label {
-    white-space: normal !important; /* Allow header text to wrap */
-    text-overflow: ellipsis;        /* Add ellipsis if header text is too long even after wrapping */
+    white-space: normal !important;
+    text-overflow: ellipsis;
     overflow: hidden;
-    line-height: var(--grid-cell-line-height); /* Consistent line height */
-    padding-top: 4px;    /* Add some padding for better appearance */
+    line-height: var(--grid-cell-line-height);
+    padding-top: 4px;
     padding-bottom: 4px;
-    /* max-height can be set if you want to limit header height too */
-    /* max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em); */
+}
+.ag-theme-quartz .ag-header-row { /* Style for the entire header row */
+    background-color: var(--grid-header-bg);
+}
+.ag-theme-quartz .ag-header-cell { /* Style for individual header cells */
+    border-right: 1px solid var(--border-color); /* Add subtle separator */
+}
+.ag-theme-quartz .ag-header-cell:last-child {
+    border-right: none; /* Remove separator from the last header cell */
 }
 
-/* Ensure that the AG Grid's autoHeight calculation works well with our custom styles */
-.ag-theme-quartz .ag-row {
-    /* This might not be strictly necessary if autoHeight in colDefs works as expected,
-       but can help ensure rows adapt. */
+
+/* Style for Floating Filter Row inputs to make them more elegant */
+.ag-theme-quartz .ag-floating-filter-input input,
+.ag-theme-quartz .ag-floating-filter-button { /* Also style filter button if present */
+    font-family: var(--font-family-sans);
+    font-size: 0.9rem; /* Slightly smaller font for filters */
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    width: 100%; /* Make input take full width of its container */
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    height: auto; /* Let padding define height */
+    min-height: 30px; /* Ensure a minimum tap height */
 }
+
+.ag-theme-quartz .ag-floating-filter-input input:focus {
+    border-color: var(--input-focus-border) !important;
+    box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
+    outline: none !important; /* Ensure global outline removal doesn't get overridden by AG Grid */
+}
+
+.ag-theme-quartz .ag-floating-filter-button {
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.4rem;
+    cursor: pointer;
+}
+.ag-theme-quartz .ag-floating-filter-button:hover {
+    color: var(--accent-primary);
+}
+
+.ag-theme-quartz .ag-floating-filter-body { /* Container for the input */
+    padding: 0 4px; /* Add some padding around the filter input within its cell */
+}
+.ag-theme-quartz .ag-header-cell-comp-wrapper .ag-floating-filter { /* The entire filter row */
+    background-color: var(--grid-header-bg);
+    border-top: 1px solid var(--border-color); /* Separator line above filters */
+}
+
 
 .delete-row-btn {
   background-color: var(--error-color) !important;
   color: white !important;
   border: none;
   border-radius: var(--border-radius);
-  padding: 0.3rem 0.6rem;
-  font-size: 0.9rem;
-  line-height: 1; /* Keep icon centered */
+  padding: 0.4rem 0.8rem; /* Adjusted padding for a slightly better feel */
+  font-size: 1rem;  /* Slightly larger icon/text */
+  line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-  width: auto; /* Ensure button is not full width */
-  margin: 0; /* Remove default button margins */
-  vertical-align: middle; /* Align button nicely if cell is taller */
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  width: auto;
+  margin: 0;
+  display: inline-flex; /* Helps with centering icon if it's an SVG or font icon */
+  align-items: center;
+  justify-content: center;
+  /* vertical-align: middle; /* display:flex on parent cell handles this */
 }
 .delete-row-btn:hover {
   background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
+  transform: scale(1.05); /* Slight scale effect on hover */
+}
+.delete-row-btn:active {
+    transform: scale(0.95); /* Slight shrink effect on click */
 }
 
 .grid-link {
     color: var(--accent-primary);
     text-decoration: underline;
-    display: inline-block; /* Or block if you want it to take full width of cell content area */
+    display: inline-block;
     padding: 2px 0;
-    word-break: break-all; /* Allow long URLs without spaces to break and wrap if needed */
+    word-break: break-all; /* Ensure long URLs break and wrap if needed */
 }
 .grid-link:hover {
     color: var(--accent-primary-hover);
@@ -349,11 +396,9 @@ button.secondary {
 
 
 /* --- Diagnostic Fix for "White Square Pop-up" (Focus Styles) --- */
-/* These rules remove the default browser outline on focused elements. */
 *:focus,
 *:focus-visible {
   outline: none !important;
-  /* box-shadow: none !important; /* Also remove box-shadow if that was part of the "white square" */
 }
 
 /* Custom focus styles for form elements for better accessibility and UX */
@@ -363,17 +408,17 @@ input[type="text"]:focus,
 input[type="date"]:focus,
 textarea:focus,
 select:focus {
-  /* outline: none !important; /* Already handled by global *:focus */
-  border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent) !important;
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
 }
 
 button:focus {
-  /* outline: none !important; /* Already handled by global *:focus */
-  background-color: var(--accent-primary-hover) !important; /* Ensure this is desired for all buttons */
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
+  /* background-color: var(--accent-primary-hover) !important; */ /* Handled by specific button types or general hover */
+  box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
 }
-
+button:not(.delete-row-btn):focus { /* Apply hover style on focus for non-delete buttons */
+    background-color: var(--accent-primary-hover) !important;
+}
 button.secondary:focus {
   background-color: var(--accent-secondary-hover) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-secondary) 30%, transparent) !important;
@@ -384,23 +429,27 @@ button.secondary:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color) 30%, transparent) !important;
 }
 
-/* Custom focus for navigation links */
 #app-header nav a:focus {
-  /* outline: none !important; /* Already handled by global *:focus */
   color: var(--accent-primary) !important;
-  /* Using a border or underline might be better than box-shadow for nav links */
-  /* border-bottom-color: var(--accent-primary) !important; */
-  box-shadow: 0 2px 0 0 var(--accent-primary) inset !important; /* Example: inset bottom border */
-  /* Remove the generic box-shadow if it looks odd here */
-  /* box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important; */
+  box-shadow: 0 2px 0 0 var(--accent-primary) inset !important;
 }
 
 /* AG Grid specific focus - ensure it doesn't interfere or add back unwanted outlines */
 .ag-theme-quartz .ag-cell-focus {
-    /* AG Grid adds its own cell focus borders. If you want to remove them: */
-    /* border: none !important; */
-    /* outline: none !important; */
-    /* box-shadow: none !important; */
-    /* Or style them to match your theme: */
-    /* border: 1px solid var(--accent-primary) !important; */
+    /* Default AG Grid focus can be a bit strong.
+       You can customize it or remove it if your cell content has its own focus indication (e.g., inputs) */
+    /* border: 1px solid var(--input-focus-border) !important; */ /* Example: match input focus */
+    /* box-shadow: 0 0 0 2px var(--input-focus-shadow) !important; */
+    border-color: transparent !important; /* Remove AG Grid's default cell focus border if not desired */
+    background-color: color-mix(in srgb, var(--accent-primary) 8%, transparent) !important; /* Subtle background on focused cell */
+}
+
+/* Ensure the grid itself doesn't have unwanted horizontal scrollbars
+   if the sum of minWidths of columns is less than or equal to the grid container width.
+   This is mostly controlled by JS (flex, minWidth) but CSS can ensure container behaves.
+*/
+#myGrid {
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scroll on the main grid container if columns fit */
+                         /* AG Grid should handle internal scrolling of content if needed */
 }
