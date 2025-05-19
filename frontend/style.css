@@ -210,6 +210,28 @@ button.secondary {
   width: auto; 
 }
 
+.delete-row-btn {
+  background-color: var(--error-color) !important; /* Use important if needed to override other button styles */
+  color: white !important;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.3rem 0.6rem; /* Smaller padding for an icon button */
+  font-size: 0.9rem; /* Adjust icon size if needed */
+  line-height: 1; /* Ensure icon is centered */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  width: auto; /* Override default full-width button style */
+  margin: 0; /* Reset margins if any were inherited */
+}
+
+.delete-row-btn:hover {
+  background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
+}
+
+/* Ensure AG Grid cells can show the button correctly */
+.ag-theme-quartz .ag-cell {
+    overflow: visible !important; /* Allows button to not be clipped if cell padding is tight */
+}
 /* AG Grid specific overrides can go here if needed */
 /* For example, to ensure the grid itself has a border if desired, beyond the section's box-shadow */
 /*

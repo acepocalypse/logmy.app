@@ -324,45 +324,57 @@ confirm_form.addEventListener('submit', async e => {
 
 // ---------- AG Grid Setup ----------
 const columnDefs = [
-  { headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true },
-  { headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true },
-  { headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true },
-  { 
-    headerName: 'Type', field: 'job_type', editable: true, cellEditor: 'agSelectCellEditor',
-    cellEditorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part‑Time'] },
-    filter: 'agSetColumnFilter', sortable: true, resizable: true
-  },
-  { 
-    headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter', 
-    sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
-    filterParams: { comparator: dateFilterComparator }
-  },
-  { 
-    headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter', 
-    sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
-    filterParams: { comparator: dateFilterComparator }
-  },
-  { 
-    headerName: 'Status', field: 'status', editable: true, cellEditor: 'agSelectCellEditor',
-    cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] },
-    filter: 'agSetColumnFilter', sortable: true, resizable: true 
-  },
-  { 
-    headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor', 
-    cellEditorPopup: true, resizable: true, wrapText: true, autoHeight: true, minWidth: 200
-    // filter: 'agTextColumnFilter' // Enable if simple text filtering is needed
-  },
-  { 
-    headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false,
+  // ... your existing column definitions (Company, Position, etc.) ...
+  {
+    headerName: 'Actions',
+    field: 'id', // Use the row's id for context, or any field
+    width: 100, // Adjust width as needed
+    pinned: 'right', // Pin the actions column to the right
     cellRenderer: params => {
-      if (params.value) {
-        return `<a href="${params.value.startsWith('http') ? params.value : 'http://' + params.value}" target="_blank" rel="noopener noreferrer">View</a>`;
-      }
-      return '';
+      const button = document.createElement('button');
+      button.classList.add('delete-row-btn'); // Add a class for styling
+      button.innerHTML = '&#x1F5D1;'; // Trash can icon (or use text "Delete")
+      button.title = 'Delete Application'; // Tooltip for the button
+      button.addEventListener('click', () => handleDeleteRow(params.node.data));
+      return button;
     },
-    editable: true // Allow editing URL
+    editable: false,
+    sortable: false,
+    filter: false,
+    resizable: false,
   }
 ];
+
+async function handleDeleteRow(rowData) {
+  if (!rowData || !rowData.id) {
+    alert("Could not find row data to delete.");
+    return;
+  }
+
+  // Confirmation dialog
+  if (!confirm(`Are you sure you want to delete the application for "${rowData.position}" at "${rowData.company}"?`)) {
+    return;
+  }
+
+  // 1. Delete from Supabase
+  const { error: deleteError } = await sb
+    .from('applications')
+    .delete()
+    .eq('id', rowData.id);
+
+  if (deleteError) {
+    alert(`Failed to delete application: ${deleteError.message}`);
+    console.error("Supabase delete error:", deleteError);
+  } else {
+    // 2. If Supabase delete is successful, remove from AG Grid
+    if (gridApi) {
+      gridApi.applyTransaction({ remove: [rowData] });
+    }
+    // Optionally, display a success message
+    // displayMessage(some_feedback_element, 'Application deleted successfully.', 'success');
+    console.log("Application deleted:", rowData);
+  }
+}
 
 function dateFilterComparator(filterLocalDateAtMidnight, cellValue) {
     if (cellValue == null) return -1; // Or 0 or 1, depending on how you want to handle nulls
