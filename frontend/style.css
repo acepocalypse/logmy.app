@@ -127,6 +127,35 @@ section {
   margin-bottom: 2rem;
 }
 
+/* Auth section specific styling */
+#auth-container { /* Wrapper for login/signup */
+    max-width: 400px;
+    margin: 2rem auto; /* Center it */
+}
+#auth-section { /* Keep existing auth section styles if any specific ones were there */
+    /* padding: 1.5rem 2rem; already on general section */
+}
+#auth-section h2 { /* Auth title (Sign In / Sign Up) */
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 1.5rem;
+}
+.auth-toggle-text {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+.auth-toggle-text a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    font-weight: 500;
+}
+.auth-toggle-text a:hover {
+    color: var(--accent-primary-hover);
+}
+
+
 input[type="email"],
 input[type="password"],
 input[type="text"],
@@ -143,12 +172,12 @@ select {
   background-color: var(--input-bg);
   color: var(--text-primary);
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  min-height: var(--grid-filter-height); /* Apply consistent height to general inputs too */
+  min-height: var(--grid-filter-height);
 }
 
 textarea {
   line-height: 1.4;
-  min-height: 80px; /* Textarea can be taller */
+  min-height: 80px;
 }
 
 label {
@@ -159,7 +188,7 @@ label {
 }
 
 button {
-  display: inline-flex; /* For vertical centering of text */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
@@ -174,55 +203,41 @@ button {
   transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
-  min-height: var(--grid-filter-height); /* Consistent height for buttons */
-  box-sizing: border-box; /* Ensure padding doesn't add to height beyond min-height */
+  min-height: var(--grid-filter-height);
+  box-sizing: border-box;
 }
 
 button.secondary {
   background-color: var(--accent-secondary);
 }
 
-/* Width adjustments for buttons in specific sections */
-#auth-section button,
+#auth-section form button, /* Targets login and signup buttons */
 #confirm-form button[type="submit"] {
-  width: 100%; /* These buttons remain full width of their parent section */
+  width: 100%;
 }
-/* #input-section button width is handled by .input-button-group */
 
-
-#auth-section {
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 2rem;
-}
-#auth-section h2 {
-  text-align: center;
-  border-bottom: none;
-  margin-bottom: 1.5rem;
-}
 
 /* Styles for the URL input and Fetch button group */
-#input-section h2 { /* Center the heading of the input section */
+#input-section h2 {
     text-align: center;
-    border-bottom: none; /* Remove border if not desired for this heading */
-    margin-bottom: 1.5rem; /* Consistent margin with other h2 */
+    border-bottom: none;
+    margin-bottom: 1.5rem;
 }
 .input-button-group {
-  max-width: var(--input-button-group-max-width); /* Use CSS variable */
-  margin: 0 auto 1rem auto; /* Center the group and add bottom margin */
+  max-width: var(--input-button-group-max-width);
+  margin: 0 auto 1rem auto;
 }
 .input-button-group #job-url,
 .input-button-group #link-parse-btn {
-  width: 100%; /* Input and button take full width of the group */
+  width: 100%;
   box-sizing: border-box;
 }
 .input-button-group #job-url {
-  margin-bottom: 0.75rem; /* Space between input and button */
+  margin-bottom: 0.75rem;
 }
 .input-button-group #link-parse-btn {
-  margin-top: 0; /* Remove any default top margin from general button styles */
-  margin-bottom: 0; /* Remove any default bottom margin */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 
@@ -233,10 +248,10 @@ button.secondary {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
-  align-items: center; /* Align items vertically */
+  align-items: center;
 }
 .sheet-actions button {
-  width: auto; /* Buttons in sheet actions are not full width */
+  width: auto;
 }
 
 #account-section {
@@ -274,8 +289,8 @@ button.secondary {
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius);
   text-align: center;
-  min-height: calc(var(--grid-filter-height) + 4px); /* Make message boxes similar height to inputs/buttons */
-  display: flex; /* For vertical centering of text */
+  min-height: calc(var(--grid-filter-height) + 4px);
+  display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 500;
@@ -283,10 +298,14 @@ button.secondary {
   box-sizing: border-box;
   transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }
-.message:empty {
-   padding: 0; /* Remove padding if empty to truly collapse with min-height */
+.message.hidden { /* More explicit way to hide messages */
+    display: none !important;
+}
+.message:not(.hidden):empty { /* Style for empty but not explicitly hidden messages */
+   padding: 0;
    border: none;
    background-color: transparent;
+   min-height: calc(var(--grid-filter-height) + 4px); /* Keep space */
 }
 .message.success {
   background-color: var(--success-bg);
@@ -309,220 +328,36 @@ button.secondary {
 }
 
 /* --- AG Grid Specific Styles --- */
+.ag-theme-quartz .ag-cell { display: flex; align-items: center; padding-left: 8px; padding-right: 8px; box-sizing: border-box; }
+.ag-theme-quartz .ag-cell[col-id="id"] { justify-content: center; padding-left: 4px; padding-right: 4px; }
+.ag-theme-quartz .ag-cell-value { white-space: normal; line-height: var(--grid-cell-line-height); max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em); overflow-y: hidden; overflow-x: auto; box-sizing: border-box; width: 100%; }
+.ag-theme-quartz .ag-header-cell-label { white-space: normal !important; text-overflow: ellipsis; overflow: hidden; line-height: var(--grid-cell-line-height); padding: 8px 6px; font-weight: 500; box-sizing: border-box; display: flex; align-items: center; height: 100%; }
+.ag-theme-quartz .ag-header-row { background-color: var(--grid-header-bg); border-bottom: 1px solid var(--border-color); }
+.ag-theme-quartz .ag-header-cell { border-right: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); padding: 0; }
+.ag-theme-quartz .ag-header-cell:last-child { border-right: none; }
+.ag-theme-quartz .ag-floating-filter-input input, .ag-theme-quartz .ag-floating-filter-input select, .ag-theme-quartz .ag-custom-filter input[type="text"], .ag-theme-quartz .ag-floating-filter-button { font-family: var(--font-family-sans); font-size: 0.9rem; padding: 0 0.8rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--input-bg); color: var(--text-primary); width: 100%; box-sizing: border-box; transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; height: var(--grid-filter-height); min-height: var(--grid-filter-height); display: block; line-height: var(--grid-filter-height); }
+.ag-theme-quartz .ag-filter-filter.ag-date-filter input[type="text"] { height: var(--grid-filter-height); min-height: var(--grid-filter-height); padding: 0 0.8rem; font-size: 0.9rem; line-height: var(--grid-filter-height); }
+.ag-theme-quartz .ag-floating-filter-input input:focus, .ag-theme-quartz .ag-floating-filter-input select:focus, .ag-theme-quartz .ag-custom-filter input[type="text"]:focus { border-color: var(--input-focus-border) !important; box-shadow: 0 0 0 3px var(--input-focus-shadow) !important; outline: none !important; }
+.ag-theme-quartz .ag-floating-filter-button { background-color: transparent; border: none; color: var(--text-secondary); cursor: pointer; height: var(--grid-filter-height); min-height: var(--grid-filter-height); padding: 0 0.5rem; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.ag-theme-quartz .ag-floating-filter-button:hover { color: var(--accent-primary); }
+.ag-theme-quartz .ag-floating-filter-input { display: flex; align-items: center; width: 100%; }
+.ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper { flex-grow: 1; display: flex; }
+.ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper input { line-height: normal; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.ag-theme-quartz .ag-floating-filter-body { padding: 6px 4px; display: flex; align-items: center; height: 100%; }
+.ag-theme-quartz .ag-header-cell-comp-wrapper .ag-floating-filter { background-color: var(--grid-header-bg); border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); min-height: calc(var(--grid-filter-height) + 12px); box-sizing: border-box; }
+.delete-row-btn { background-color: var(--error-color) !important; color: white !important; border: none; border-radius: var(--border-radius); padding: 0.4rem 0.8rem; font-size: 1rem; line-height: 1; cursor: pointer; transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out; width: auto; min-width: 36px; height: calc(var(--grid-filter-height) - 8px); margin: 0; display: inline-flex; align-items: center; justify-content: center; }
+.delete-row-btn:hover { background-color: color-mix(in srgb, var(--error-color) 80%, black) !important; transform: scale(1.05); }
+.delete-row-btn:active { transform: scale(0.95); }
+.grid-link { color: var(--accent-primary); text-decoration: underline; display: inline-block; padding: 2px 0; word-break: break-all; }
+.grid-link:hover { color: var(--accent-primary-hover); }
 
-.ag-theme-quartz .ag-cell {
-    display: flex;
-    align-items: center;
-    padding-left: 8px;
-    padding-right: 8px;
-    box-sizing: border-box;
-}
-.ag-theme-quartz .ag-cell[col-id="id"] { /* Actions column */
-    justify-content: center;
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-.ag-theme-quartz .ag-cell-value {
-  white-space: normal;
-  line-height: var(--grid-cell-line-height);
-  max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em);
-  overflow-y: hidden;
-  overflow-x: auto;
-  box-sizing: border-box;
-  width: 100%; /* Ensure it uses the cell's available width */
-}
-
-.ag-theme-quartz .ag-header-cell-label {
-    white-space: normal !important;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    line-height: var(--grid-cell-line-height);
-    padding: 8px 6px; /* Increased padding for header text */
-    font-weight: 500;
-    box-sizing: border-box;
-    display: flex; /* For vertical centering */
-    align-items: center;
-    height: 100%; /* Take full height of header cell */
-}
-.ag-theme-quartz .ag-header-row {
-    background-color: var(--grid-header-bg);
-    border-bottom: 1px solid var(--border-color);
-}
-.ag-theme-quartz .ag-header-cell {
-    border-right: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-    padding: 0; /* AG Grid header cells have internal structure; padding on label is better */
-    /* height: calc(var(--grid-filter-height) + 10px); /* Ensure header cells are tall enough */
-}
-.ag-theme-quartz .ag-header-cell:last-child {
-    border-right: none;
-}
-
-/* Style for Floating Filter Row inputs to make them more elegant */
-.ag-theme-quartz .ag-floating-filter-input input,
-.ag-theme-quartz .ag-floating-filter-input select,
-.ag-theme-quartz .ag-custom-filter input[type="text"], /* For date filter input part */
-.ag-theme-quartz .ag-floating-filter-button {
-    font-family: var(--font-family-sans);
-    font-size: 0.9rem;
-    padding: 0 0.8rem; /* Adjusted padding, height will control vertical space */
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background-color: var(--input-bg);
-    color: var(--text-primary);
-    width: 100%;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    height: var(--grid-filter-height);
-    min-height: var(--grid-filter-height);
-    display: block; /* Or inline-block if side-by-side elements are needed within */
-    line-height: var(--grid-filter-height); /* Vertically center text in input */
-}
-
-/* Specifically target the input within the date filter component */
-.ag-theme-quartz .ag-filter-filter.ag-date-filter input[type="text"] {
-    height: var(--grid-filter-height);
-    min-height: var(--grid-filter-height);
-    padding: 0 0.8rem; /* Match other filter inputs */
-    font-size: 0.9rem;
-    line-height: var(--grid-filter-height);
-}
-
-
-.ag-theme-quartz .ag-floating-filter-input input:focus,
-.ag-theme-quartz .ag-floating-filter-input select:focus,
-.ag-theme-quartz .ag-custom-filter input[type="text"]:focus {
-    border-color: var(--input-focus-border) !important;
-    box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
-    outline: none !important;
-}
-
-.ag-theme-quartz .ag-floating-filter-button { /* e.g., clear button or dropdown for set filter */
-    background-color: transparent;
-    border: none; /* Remove border if it's a button next to an input */
-    color: var(--text-secondary);
-    cursor: pointer;
-    height: var(--grid-filter-height);
-    min-height: var(--grid-filter-height);
-    padding: 0 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-}
-.ag-theme-quartz .ag-floating-filter-button:hover {
-    color: var(--accent-primary);
-}
-/* Wrapper for the filter input and its button (if any, like clear button) */
-.ag-theme-quartz .ag-floating-filter-input {
-    display: flex;
-    align-items: center; /* Vertically align input and any side buttons */
-    width: 100%; /* Ensure wrapper takes full width */
-}
-.ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper { /* AG Grid often wraps inputs */
-    flex-grow: 1; /* Allow input part to take available space */
-    display: flex; /* For better control of input within */
-}
-.ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper input {
-    line-height: normal; /* Reset line-height for input if parent's line-height is too large */
-    padding-top: 0.5rem; /* Re-apply specific padding if line-height trick doesn't work well */
-    padding-bottom: 0.5rem;
-}
-
-
-.ag-theme-quartz .ag-floating-filter-body { /* Container for the input within the filter cell */
-    padding: 6px 4px; /* Add some padding around the filter input within its cell */
-    display: flex;
-    align-items: center; /* Vertically center the filter component in the cell */
-    height: 100%; /* Ensure body takes full height of filter row */
-}
-.ag-theme-quartz .ag-header-cell-comp-wrapper .ag-floating-filter { /* The entire filter row */
-    background-color: var(--grid-header-bg);
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-    min-height: calc(var(--grid-filter-height) + 12px); /* Ensure filter row is tall enough for padding */
-    box-sizing: border-box;
-}
-
-
-.delete-row-btn {
-  background-color: var(--error-color) !important;
-  color: white !important;
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 0.4rem 0.8rem;
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-  width: auto;
-  min-width: 36px;
-  height: calc(var(--grid-filter-height) - 8px);
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.delete-row-btn:hover {
-  background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
-  transform: scale(1.05);
-}
-.delete-row-btn:active {
-    transform: scale(0.95);
-}
-
-.grid-link {
-    color: var(--accent-primary);
-    text-decoration: underline;
-    display: inline-block;
-    padding: 2px 0;
-    word-break: break-all;
-}
-.grid-link:hover {
-    color: var(--accent-primary-hover);
-}
-
-*:focus,
-*:focus-visible {
-  outline: none !important;
-}
-
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="text"]:focus,
-input[type="date"]:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--input-focus-border) !important;
-  box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
-}
-
-button:focus {
-  box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
-}
-button:not(.delete-row-btn):focus {
-    background-color: var(--accent-primary-hover) !important;
-}
-button.secondary:focus {
-  background-color: var(--accent-secondary-hover) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-secondary) 30%, transparent) !important;
-}
-
-#logout-btn:focus {
-  background-color: color-mix(in srgb, var(--error-color) 70%, black) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color) 30%, transparent) !important;
-}
-
-#app-header nav a:focus {
-  color: var(--accent-primary) !important;
-  box-shadow: 0 2px 0 0 var(--accent-primary) inset !important;
-}
-
-.ag-theme-quartz .ag-cell-focus {
-    border-color: transparent !important;
-    background-color: color-mix(in srgb, var(--accent-primary) 8%, transparent) !important;
-}
-
-#myGrid {
-    width: 100%;
-    overflow-x: hidden; /* Attempt to hide main grid scrollbar, relies on JS column config */
-}
+/* --- Focus Styles & Global Outline Removal --- */
+*:focus, *:focus-visible { outline: none !important; }
+input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { border-color: var(--input-focus-border) !important; box-shadow: 0 0 0 3px var(--input-focus-shadow) !important; }
+button:focus { box-shadow: 0 0 0 3px var(--input-focus-shadow) !important; }
+button:not(.delete-row-btn):focus { background-color: var(--accent-primary-hover) !important; }
+button.secondary:focus { background-color: var(--accent-secondary-hover) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-secondary) 30%, transparent) !important; }
+#logout-btn:focus { background-color: color-mix(in srgb, var(--error-color) 70%, black) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color) 30%, transparent) !important; }
+#app-header nav a:focus { color: var(--accent-primary) !important; box-shadow: 0 2px 0 0 var(--accent-primary) inset !important; }
+.ag-theme-quartz .ag-cell-focus { border-color: transparent !important; background-color: color-mix(in srgb, var(--accent-primary) 8%, transparent) !important; }
+#myGrid { width: 100%; overflow-x: hidden; }

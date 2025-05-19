@@ -31,15 +31,34 @@
   <main>
     <h1 id="main-title">logmy.app</h1>
 
-    <section id="auth-section">
-      <h2>Sign In</h2>
-      <label for="email">Email</label>
-      <input id="email" type="email" placeholder="you@example.com" />
-      <label for="password">Password</label>
-      <input id="password" type="password" placeholder="••••••••" />
-      <button id="login-btn">Log In</button>
-      <p id="auth-msg" class="message"></p>
-    </section>
+    <div id="auth-container">
+        <section id="auth-section">
+          <h2 id="auth-title">Sign In</h2>
+          <form id="login-form">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" required />
+            <label for="password">Password</label>
+            <input id="password" type="password" placeholder="••••••••" required />
+            <button id="login-btn" type="submit">Log In</button>
+          </form>
+
+          <form id="signup-form" class="hidden">
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" placeholder="you@example.com" required />
+            <label for="signup-password">Password</label>
+            <input id="signup-password" type="password" placeholder="Create a password (min. 6 characters)" required />
+            <label for="signup-confirm-password">Confirm Password</label>
+            <input id="signup-confirm-password" type="password" placeholder="Confirm your password" required />
+            <button id="signup-btn" type="submit">Sign Up</button>
+          </form>
+
+          <p id="auth-msg" class="message"></p>
+          <p id="auth-toggle-msg" class="auth-toggle-text">
+            Don't have an account? <a href="#" id="auth-toggle-link">Sign Up</a>
+          </p>
+        </section>
+    </div>
+
 
     <section id="input-section" class="hidden">
       <h2>Paste Job‑Posting URL</h2>
@@ -97,70 +116,128 @@
   </main>
 
 <script>
+// --- Supabase & API Config ---
 const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s';
-const API_BASE = 'https://logmy-app.onrender.com';
+const API_BASE = 'https://logmy-app.onrender.com'; // Your backend URL
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
 let gridApi = null;
 
-// DOM Elements
+// --- DOM Elements ---
+// Auth Elements
+const auth_container = document.getElementById('auth-container');
+const auth_section = document.getElementById('auth-section'); // Keep for general auth section styling if needed
+const auth_title = document.getElementById('auth-title');
+const login_form = document.getElementById('login-form');
 const email_input = document.getElementById('email');
 const password_input = document.getElementById('password');
-const job_url_input = document.getElementById('job-url'); // This is the input box
+const login_btn = document.getElementById('login-btn');
+
+const signup_form = document.getElementById('signup-form');
+const signup_email_input = document.getElementById('signup-email');
+const signup_password_input = document.getElementById('signup-password');
+const signup_confirm_password_input = document.getElementById('signup-confirm-password');
+const signup_btn = document.getElementById('signup-btn');
+
+const auth_msg = document.getElementById('auth-msg');
+const auth_toggle_msg = document.getElementById('auth-toggle-msg');
+const auth_toggle_link = document.getElementById('auth-toggle-link');
+
+// Other App Elements
 const app_header = document.getElementById('app-header');
 const main_title = document.getElementById('main-title');
-const auth_section = document.getElementById('auth-section');
 const input_section = document.getElementById('input-section');
 const sheet_section = document.getElementById('sheet-section');
 const account_section = document.getElementById('account-section');
-const confirm_form = document.getElementById('confirm-form');
+const confirm_form_el = document.getElementById('confirm-form'); // Renamed to avoid conflict
 const grid_div = document.querySelector('#myGrid');
-const auth_msg = document.getElementById('auth-msg');
+const job_url_input = document.getElementById('job-url');
 const link_msg = document.getElementById('link-msg');
 const submit_msg = document.getElementById('submit-msg');
 const user_email_display = document.getElementById('user-email-display');
-const login_btn = document.getElementById('login-btn');
 const logout_btn = document.getElementById('logout-btn');
-const link_parse_btn = document.getElementById('link-parse-btn'); // This is the button
+const link_parse_btn = document.getElementById('link-parse-btn');
 const add_row_btn = document.getElementById('add-row');
 const export_csv_btn = document.getElementById('export-csv');
 const nav_applications_link = document.getElementById('nav-applications');
 const nav_account_link = document.getElementById('nav-account');
 
-// Utility Functions
+// --- State Variables ---
+let isLoginView = true;
+
+// --- Utility Functions ---
 function displayMessage(element, message, type) {
   if (!element) return;
   element.textContent = message;
-  element.className = 'message';
+  element.className = 'message'; // Reset classes
   if (type === 'success') element.classList.add('success');
   else if (type === 'error') element.classList.add('error');
   else if (type === 'neutral') element.classList.add('neutral');
+  else element.classList.add('hidden'); // Hide if no type
 }
 
-function showSection(sectionToShow) {
-  [auth_section, input_section, sheet_section, account_section, confirm_form].forEach(section => {
-    if (section) section.classList.add('hidden');
-  });
-  if (sectionToShow) sectionToShow.classList.remove('hidden');
+function showAuthSection(showLogin = true) {
+    isLoginView = showLogin;
+    if (showLogin) {
+        auth_title.textContent = 'Sign In';
+        login_form.classList.remove('hidden');
+        signup_form.classList.add('hidden');
+        auth_toggle_link.textContent = 'Sign Up';
+        auth_toggle_msg.childNodes[0].nodeValue = "Don't have an account? "; // Update text before link
+    } else {
+        auth_title.textContent = 'Sign Up';
+        login_form.classList.add('hidden');
+        signup_form.classList.remove('hidden');
+        auth_toggle_link.textContent = 'Log In';
+        auth_toggle_msg.childNodes[0].nodeValue = "Already have an account? "; // Update text before link
+    }
+    auth_container.classList.remove('hidden'); // Ensure the main auth container is visible
+    // Hide other main app sections
+    [input_section, sheet_section, account_section, confirm_form_el].forEach(section => {
+        if (section) section.classList.add('hidden');
+    });
+    app_header.classList.add('hidden');
+    main_title.classList.remove('hidden');
+    displayMessage(auth_msg, '', 'hidden'); // Clear any previous auth messages
 }
+
+
+function showAppSections() {
+    auth_container.classList.add('hidden'); // Hide auth container
+    main_title.classList.add('hidden');
+    app_header.classList.remove('hidden');
+    // Default to applications view
+    showApplicationsView();
+}
+
 
 function showApplicationsView() {
-  showSection(null);
+  // Hide all major sections first
+  [auth_container, account_section, confirm_form_el].forEach(section => {
+    if (section) section.classList.add('hidden');
+  });
+  // Show necessary sections for applications view
   input_section.classList.remove('hidden');
   sheet_section.classList.remove('hidden');
-  if (confirm_form.classList.contains('user-initiated')) {
-      confirm_form.classList.remove('hidden');
+
+  if (confirm_form_el.classList.contains('user-initiated')) {
+      confirm_form_el.classList.remove('hidden');
   } else {
-      confirm_form.classList.add('hidden');
+      confirm_form_el.classList.add('hidden');
   }
-  account_section.classList.add('hidden');
   nav_applications_link.classList.add('active');
   nav_account_link.classList.remove('active');
 }
 
 function showAccountView() {
-  showSection(account_section);
+  // Hide all major sections first
+  [auth_container, input_section, sheet_section, confirm_form_el].forEach(section => {
+    if (section) section.classList.add('hidden');
+  });
+  // Show account section
+  account_section.classList.remove('hidden');
+
   if (currentUser && currentUser.email) {
     user_email_display.textContent = currentUser.email;
   }
@@ -168,232 +245,248 @@ function showAccountView() {
   nav_account_link.classList.add('active');
 }
 
-function updateUIAfterLogin() {
-  auth_section.classList.add('hidden');
-  main_title.classList.add('hidden');
-  app_header.classList.remove('hidden');
-  showApplicationsView();
-  loadGrid();
-}
 
-function updateUIAfterLogout() {
-  app_header.classList.add('hidden');
-  main_title.classList.remove('hidden');
-  showSection(auth_section);
-  currentUser = null;
-  if (gridApi) {
-    gridApi.destroy();
-    gridApi = null;
-  }
-  email_input.value = '';
-  password_input.value = '';
-  auth_msg.textContent = '';
-  auth_msg.className = 'message';
-}
-
-// Event Listeners
-nav_applications_link.addEventListener('click', (e) => { e.preventDefault(); if (currentUser) showApplicationsView(); });
-nav_account_link.addEventListener('click', (e) => { e.preventDefault(); if (currentUser) showAccountView(); });
-
-login_btn.addEventListener('click', async () => {
-  displayMessage(auth_msg, 'Logging in…', 'neutral');
-  const { data, error } = await sb.auth.signInWithPassword({ email: email_input.value, password: password_input.value });
-  if (error) {
-    displayMessage(auth_msg, `❌ ${error.message}`, 'error');
-  } else if (data && data.user) {
-    currentUser = data.user;
-    displayMessage(auth_msg, '✅ Login Successful!', 'success');
-    setTimeout(() => { updateUIAfterLogin(); auth_msg.textContent = ''; auth_msg.className = 'message'; }, 500);
-  }
+// --- Event Listeners ---
+auth_toggle_link.addEventListener('click', (e) => {
+    e.preventDefault();
+    showAuthSection(!isLoginView); // Toggle between login and signup
 });
+
+login_form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    displayMessage(auth_msg, 'Logging in…', 'neutral');
+    const email = email_input.value;
+    const password = password_input.value;
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        displayMessage(auth_msg, `❌ ${error.message}`, 'error');
+    } else if (data && data.user) {
+        currentUser = data.user;
+        displayMessage(auth_msg, '✅ Login Successful!', 'success');
+        setTimeout(() => {
+            showAppSections();
+            loadGrid(); // Load grid data after successful login
+            displayMessage(auth_msg, '', 'hidden');
+        }, 500);
+    } else {
+        displayMessage(auth_msg, '❌ Login failed. Please try again.', 'error');
+    }
+});
+
+signup_form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = signup_email_input.value;
+    const password = signup_password_input.value;
+    const confirmPassword = signup_confirm_password_input.value;
+
+    if (password !== confirmPassword) {
+        displayMessage(auth_msg, 'Passwords do not match.', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        displayMessage(auth_msg, 'Password should be at least 6 characters long.', 'error');
+        return;
+    }
+
+    displayMessage(auth_msg, 'Signing up…', 'neutral');
+
+    try {
+        const response = await fetch(`${API_BASE}/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            displayMessage(auth_msg, `✅ ${result.message}`, 'success');
+            signup_form.reset();
+            // Optionally switch to login view or keep user on signup with success message
+            setTimeout(() => showAuthSection(true), 3000); // Switch to login after 3s
+        } else {
+            displayMessage(auth_msg, `❌ ${result.error || 'Signup failed.'}`, 'error');
+        }
+    } catch (err) {
+        console.error("Signup fetch error:", err);
+        displayMessage(auth_msg, '❌ Network error during signup. Please try again.', 'error');
+    }
+});
+
 
 logout_btn.addEventListener('click', async () => {
   const { error } = await sb.auth.signOut();
-  if (error) displayMessage(auth_msg, `Logout failed: ${error.message}`, 'error');
-  else updateUIAfterLogout();
+  if (error) {
+      displayMessage(submit_msg, `Logout failed: ${error.message}`, 'error'); // Show error near a relevant section
+  } else {
+      currentUser = null;
+      if (gridApi) {
+        gridApi.destroy(); // Destroy grid instance
+        gridApi = null;
+      }
+      // Clear form fields explicitly
+      email_input.value = '';
+      password_input.value = '';
+      signup_email_input.value = '';
+      signup_password_input.value = '';
+      signup_confirm_password_input.value = '';
+      job_url_input.value = '';
+      if(confirm_form_el) confirm_form_el.reset();
+
+
+      showAuthSection(true); // Show login view
+      displayMessage(auth_msg, 'You have been logged out.', 'neutral');
+  }
 });
 
+// Session Handling & Initial Load
 (async () => {
-  const { data: { session } } = await sb.auth.getSession();
+  const { data: { session }, error } = await sb.auth.getSession();
+  if (error) {
+      console.error("Error getting session:", error.message);
+      showAuthSection(true); // Default to login view on error
+      return;
+  }
+
   if (session && session.user) {
     currentUser = session.user;
-    updateUIAfterLogin();
+    // Check if email is verified (important after clicking verification link)
+    // Supabase client automatically refreshes the user's state upon focusing the window
+    // or navigating after clicking the verification link.
+    // We can also explicitly refresh the user state.
+    const { data: { user: updatedUser } } = await sb.auth.refreshSession();
+    if (updatedUser) currentUser = updatedUser;
+
+
+    if (currentUser.email_confirmed_at || !sb.auth.settings?.mailer?.secureEmailChangeEnabled || !sb.auth.settings?.mailer?.confirm) { // Second part for if email verification is off
+        showAppSections();
+        loadGrid();
+    } else {
+        // Email not confirmed, keep on auth page or show a specific message
+        showAuthSection(true); // Or a dedicated "please verify email" view
+        displayMessage(auth_msg, 'Please verify your email address to log in.', 'neutral');
+    }
   } else {
-    updateUIAfterLogout();
+    showAuthSection(true); // Show login view if no session
   }
+
+  // Handle email verification callback (Supabase redirects with #access_token=...&type=recovery or type=signup)
+  // The Supabase client library (supabase-js) handles this automatically when it initializes
+  // by parsing the URL fragment. If a session is established, the getSession() call above
+  // will return it. We might want to clear the hash.
+  if (window.location.hash.includes('access_token')) {
+    // The user has likely just clicked a verification or password reset link.
+    // Supabase client will handle session creation. We can clear the hash for a cleaner URL.
+    // history.replaceState(null, null, window.location.pathname + window.location.search);
+    // No need to explicitly call sb.auth.onAuthStateChange for this if getSession works.
+  }
+
 })();
 
+
+nav_applications_link.addEventListener('click', (e) => { e.preventDefault(); if (currentUser) showApplicationsView(); });
+nav_account_link.addEventListener('click', (e) => { e.preventDefault(); if (currentUser) showAccountView(); });
+
+
+link_parse_btn.addEventListener('click', async () => { /* ... (same as before) ... */ });
+confirm_form_el.addEventListener('submit', async e => { /* ... (same as before, use confirm_form_el) ... */ });
+
+// --- AG Grid Column Definitions & Options (largely same as before) ---
+const columnDefs = [
+  { headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 140, flex: 2 },
+  { headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 140, flex: 2 },
+  { headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 120, flex: 1 },
+  { headerName: 'Type', field: 'job_type', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part‑Time'] }, filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true, minWidth: 100, flex: 1 },
+  { headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter', sortable: true, resizable: true, cellEditor: 'agDateCellEditor', filterParams: { comparator: dateFilterComparator }, suppressMenu: true, minWidth: 110, flex: 1 },
+  { headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter', sortable: true, resizable: true, cellEditor: 'agDateCellEditor', filterParams: { comparator: dateFilterComparator }, suppressMenu: true, minWidth: 110, flex: 1 },
+  { headerName: 'Status', field: 'status', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] }, filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true, minWidth: 110, flex: 1 },
+  { headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor', cellEditorPopup: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 150, flex: 2 },
+  { headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false, cellRenderer: params => { if (params.value) { const url = params.value.startsWith('http') ? params.value : 'http://' + params.value; return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="grid-link">View</a>`; } return ''; }, editable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 80,  flex: 0.5 },
+  { headerName: 'Actions', field: 'id', width: 70, pinned: 'right', cellRenderer: params => { const button = document.createElement('button'); button.classList.add('delete-row-btn'); button.innerHTML = '&#x1F5D1;'; button.title = 'Delete Application'; button.style.lineHeight = '1'; button.addEventListener('click', () => handleDeleteRow(params.node.data)); return button; }, editable: false, sortable: false, filter: false, resizable: false, suppressMenu: true }
+];
+function dateFilterComparator(filterLocalDateAtMidnight, cellValue) { /* ... (same as before) ... */ }
+const gridOptions = {
+  columnDefs: columnDefs, rowData: null, domLayout: 'normal',
+  defaultColDef: { minWidth: 90, floatingFilter: true, resizable: true, sortable: true, tooltipValueGetter: () => null, suppressMenu: true, },
+  pagination: true, paginationPageSize: 20, paginationPageSizeSelector: [10, 20, 50, 100],
+  rowSelection: 'single', getRowId: params => params.data.id, deltaRowDataMode: true,
+  onCellValueChanged: async (event) => { /* ... (same as before) ... */ },
+  onGridReady: async (params) => { gridApi = params.api; console.log("AG Grid API ready."); if (currentUser) { await fetchAndSetGridData(); } }
+};
+
+// --- Data Handling for AG Grid (same as before) ---
+async function fetchAndSetGridData() { /* ... (same as before) ... */ }
+async function loadGrid() { /* ... (same as before) ... */ }
+async function handleDeleteRow(rowData) { /* ... (same as before) ... */ }
+add_row_btn.addEventListener('click', async () => { /* ... (same as before) ... */ });
+export_csv_btn.addEventListener('click', () => { /* ... (same as before) ... */ });
+
+// --- Re-populate functions that were shortened to "same as before" for brevity ---
 link_parse_btn.addEventListener('click', async () => {
   const url = job_url_input.value.trim();
   if (!url) { displayMessage(link_msg, 'Please enter a URL.', 'error'); return; }
   displayMessage(link_msg, 'Fetching…', 'neutral');
-  confirm_form.classList.add('user-initiated');
+  confirm_form_el.classList.add('user-initiated');
   try {
     const res = await fetch(`${API_BASE}/link-parse`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
     const data = await res.json();
     if (!res.ok) { displayMessage(link_msg, `❌ ${data.error || 'Failed to parse.'}`, 'error'); return; }
     displayMessage(link_msg, '✅ Parsed!', 'success');
-    [...confirm_form.elements].forEach(el => { if (el.name && data[el.name] !== undefined) el.value = data[el.name]; });
-    if (!confirm_form.elements.application_date.value) confirm_form.elements.application_date.value = new Date().toISOString().split('T')[0];
-    if (nav_applications_link.classList.contains('active')) confirm_form.classList.remove('hidden');
+    [...confirm_form_el.elements].forEach(el => { if (el.name && data[el.name] !== undefined) el.value = data[el.name]; });
+    if (!confirm_form_el.elements.application_date.value) confirm_form_el.elements.application_date.value = new Date().toISOString().split('T')[0];
+    if (nav_applications_link.classList.contains('active')) confirm_form_el.classList.remove('hidden');
   } catch (e) { displayMessage(link_msg, `❌ Network error.`, 'error'); }
 });
 
-confirm_form.addEventListener('submit', async e => {
+confirm_form_el.addEventListener('submit', async e => {
   e.preventDefault();
-  displayMessage(submit_msg, '', '');
+  displayMessage(submit_msg, '', 'hidden');
   const { data: { session }, error: sessionError } = await sb.auth.getSession();
   if (sessionError || !session) { displayMessage(submit_msg, 'Auth error. Log in.', 'error'); return; }
   const token = session.access_token;
-  const payload = Object.fromEntries(new FormData(confirm_form));
+  const payload = Object.fromEntries(new FormData(confirm_form_el));
   if (payload.application_date === '') payload.application_date = null;
   if (payload.deadline === '') payload.deadline = null;
   displayMessage(submit_msg, 'Saving...', 'neutral');
   try {
     const res = await fetch(`${API_BASE}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(payload) });
     const out = await res.json();
-    if (res.ok && out.data && out.data.length > 0) {
+    if (res.ok && out.success && out.data && out.data.length > 0) {
       displayMessage(submit_msg, '✅ Saved!', 'success');
       if (gridApi) gridApi.applyTransaction({ add: [out.data[0]], addIndex: 0 });
-      confirm_form.reset(); confirm_form.classList.add('hidden'); confirm_form.classList.remove('user-initiated');
-      job_url_input.value = ''; link_msg.textContent = ''; link_msg.className = 'message';
+      confirm_form_el.reset(); confirm_form_el.classList.add('hidden'); confirm_form_el.classList.remove('user-initiated');
+      job_url_input.value = ''; displayMessage(link_msg, '', 'hidden');
     } else { displayMessage(submit_msg, `❌ ${out.error || 'Failed to save.'}`, 'error'); }
   } catch (err) { displayMessage(submit_msg, `❌ Network error during save.`, 'error'); }
 });
-
-// --- AG Grid Column Definitions ---
-const columnDefs = [
-  {
-    headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter',
-    sortable: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true,
-    minWidth: 140, flex: 2
-  },
-  {
-    headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter',
-    sortable: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true,
-    minWidth: 140, flex: 2
-  },
-  {
-    headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter',
-    sortable: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true,
-    minWidth: 120, flex: 1
-  },
-  {
-    headerName: 'Type', field: 'job_type', editable: true, cellEditor: 'agSelectCellEditor',
-    cellEditorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part‑Time'] },
-    filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 100, flex: 1
-  },
-  {
-    headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter',
-    sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
-    filterParams: { comparator: dateFilterComparator }, suppressMenu: true,
-    minWidth: 110, flex: 1
-  },
-  {
-    headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter',
-    sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
-    filterParams: { comparator: dateFilterComparator }, suppressMenu: true,
-    minWidth: 110, flex: 1
-  },
-  {
-    headerName: 'Status', field: 'status', editable: true, cellEditor: 'agSelectCellEditor',
-    cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] },
-    filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 110, flex: 1
-  },
-  {
-    headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor',
-    cellEditorPopup: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true,
-    minWidth: 150, flex: 2
-  },
-  {
-    headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false,
-    cellRenderer: params => {
-      if (params.value) {
-        const url = params.value.startsWith('http') ? params.value : 'http://' + params.value;
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="grid-link">View</a>`;
-      }
-      return '';
-    },
-    editable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true,
-    minWidth: 80,  flex: 0.5
-  },
-  {
-    headerName: 'Actions',
-    field: 'id',
-    width: 70,
-    pinned: 'right',
-    cellRenderer: params => {
-      const button = document.createElement('button');
-      button.classList.add('delete-row-btn');
-      button.innerHTML = '&#x1F5D1;';
-      button.title = 'Delete Application';
-      button.style.lineHeight = '1';
-      button.addEventListener('click', () => handleDeleteRow(params.node.data));
-      return button;
-    },
-    editable: false, sortable: false, filter: false, resizable: false, suppressMenu: true
-  }
-];
 
 function dateFilterComparator(filterLocalDateAtMidnight, cellValue) {
     if (cellValue == null) return -1;
     const cellDate = new Date(cellValue);
     const filterDate = new Date(filterLocalDateAtMidnight);
-    if (isNaN(cellDate.getTime())) return -1;
+    if (isNaN(cellDate.getTime())) return -1; // Invalid date in cell
     if (cellDate < filterDate) return -1;
     if (cellDate > filterDate) return 1;
     return 0;
 }
 
-// --- AG Grid Options ---
-const gridOptions = {
-  columnDefs: columnDefs,
-  rowData: null,
-  domLayout: 'normal',
-  defaultColDef: {
-    minWidth: 90,
-    floatingFilter: true,
-    resizable: true,
-    sortable: true,
-    tooltipValueGetter: () => null,
-    suppressMenu: true,
-  },
-  pagination: true,
-  paginationPageSize: 20,
-  paginationPageSizeSelector: [10, 20, 50, 100],
-  rowSelection: 'single',
-  getRowId: params => params.data.id,
-  deltaRowDataMode: true,
-  onCellValueChanged: async (event) => {
+gridOptions.onCellValueChanged = async (event) => {
     const updatedRow = event.data;
     if (updatedRow.application_date === '' || updatedRow.application_date === null) updatedRow.application_date = null;
     if (updatedRow.deadline === '' || updatedRow.deadline === null) updatedRow.deadline = null;
     const { agGridId, ...rowToUpdate } = updatedRow;
     const { error: updateError } = await sb.from('applications').update(rowToUpdate).eq('id', rowToUpdate.id);
     if (updateError) {
-      displayMessage(submit_msg, `Failed to update row: ${updateError.message}`, 'error');
+      displayMessage(submit_msg, "Failed to update row: " + updateError.message, 'error');
       console.error("Supabase update error:", updateError);
     } else {
       console.log("Row updated successfully:", rowToUpdate);
+      // displayMessage(submit_msg, '✅ Row updated!', 'success'); // Optional: temporary success message
+      // setTimeout(() => { if (submit_msg.textContent.includes('Row updated')) displayMessage(submit_msg, '', 'hidden'); }, 2000);
     }
-   },
-  onGridReady: async (params) => {
-    gridApi = params.api;
-    console.log("AG Grid API ready.");
-    if (currentUser) {
-      await fetchAndSetGridData();
-    }
-  }
 };
 
-// Data Handling for AG Grid
 async function fetchAndSetGridData() {
   if (!gridApi) { console.log("Grid API not ready for fetchAndSetGridData."); return; }
   console.log("Fetching data for grid...");
@@ -402,7 +495,7 @@ async function fetchAndSetGridData() {
     const { data, error } = await sb.from('applications').select('*')
       .order('application_date', { ascending: false, nullsFirst: false });
     if (error) {
-      displayMessage(sheet_section.querySelector('.message') || submit_msg, `Error loading applications: ${error.message}`, 'error');
+      displayMessage(submit_msg, `Error loading applications: ${error.message}`, 'error');
       gridApi.hideOverlay(); return;
     }
     console.log("Data fetched (" + (data ? data.length : 0) + " rows), setting to grid.");
@@ -410,7 +503,7 @@ async function fetchAndSetGridData() {
     gridApi.hideOverlay();
   } catch (e) {
     console.error("Error in fetchAndSetGridData:", e);
-    displayMessage(sheet_section.querySelector('.message') || submit_msg, "Critical error loading grid data.", 'error');
+    displayMessage(submit_msg, "Critical error loading grid data.", 'error');
     if (gridApi) gridApi.hideOverlay();
   }
 }
@@ -443,22 +536,16 @@ async function handleDeleteRow(rowData) {
     if (gridApi) gridApi.applyTransaction({ remove: [rowData] });
     console.log("Application deleted:", rowData);
     displayMessage(submit_msg, '✅ Application deleted.', 'success');
-    setTimeout(() => { if (submit_msg.textContent === '✅ Application deleted.') displayMessage(submit_msg, '', ''); }, 2000);
+    setTimeout(() => { if (submit_msg.textContent.includes('Application deleted')) displayMessage(submit_msg, '', 'hidden'); }, 2000);
   }
 }
-
 add_row_btn.addEventListener('click', async () => {
   if (!currentUser || !gridApi) {
     displayMessage(submit_msg, "Please log in; grid not ready.", 'error');
     return;
   }
   const newDate = new Date().toISOString().split('T')[0];
-  const blank = {
-    company: '',
-    position: '',
-    application_date: newDate,
-    status: 'Wishlist',
-  };
+  const blank = { company: '', position: '', application_date: newDate, status: 'Wishlist', };
   displayMessage(submit_msg, 'Adding new row...', 'neutral');
   const { data: insertedData, error } = await sb.from('applications').insert(blank).select();
   if (error) {
@@ -467,16 +554,11 @@ add_row_btn.addEventListener('click', async () => {
     gridApi.applyTransaction({ add: [insertedData[0]], addIndex: 0 });
     gridApi.ensureIndexVisible(0);
     const firstCol = gridApi.getAllDisplayedColumns().find(col => col.isCellEditable(insertedData[0]));
-    if (firstCol) {
-        gridApi.startEditingCell({
-            rowIndex: 0,
-            colKey: firstCol.getColId()
-        });
-    }
+    if (firstCol) { gridApi.startEditingCell({ rowIndex: 0, colKey: firstCol.getColId() }); }
     displayMessage(submit_msg, '✅ New row added. You can edit it now.', 'success');
+     setTimeout(() => { if (submit_msg.textContent.includes('New row added')) displayMessage(submit_msg, '', 'hidden'); }, 3000);
   }
 });
-
 export_csv_btn.addEventListener('click', () => {
   if (gridApi) gridApi.exportDataAsCsv({ fileName: 'applications.csv' });
   else displayMessage(submit_msg, "Grid not ready for export.", 'error');
