@@ -6,40 +6,44 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geist-ui/style@latest/dist/geist.css">
   <link rel="icon" href="favicon.svg" type="image/svg" />
   <title>logmy.app</title>
-  <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet" />
-  
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css"> <link rel="stylesheet" href="style.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 </head>
 <body>
 
-  <header id="app-header" class="hidden"> <div class="logo-container">
+  <header id="app-header" class="hidden">
+    <div class="logo-container">
       <img src="favicon.svg" alt="Logmy.app Logo" id="header-logo" />
       <span class="app-name-header">logmy.app</span>
     </div>
     <nav>
-      <a href="#" id="nav-applications">Applications</a>
+      <a href="#" id="nav-applications" class="active">Applications</a>
       <a href="#" id="nav-account">Account</a>
     </nav>
   </header>
 
-  <main> <h1 id="main-title">logmy.app</h1> <section id="auth-section">
+  <main>
+    <h1 id="main-title">logmy.app</h1>
+
+    <section id="auth-section">
       <h2>Sign In</h2>
       <label for="email">Email</label>
       <input id="email" type="email" placeholder="you@example.com" />
       <label for="password">Password</label>
       <input id="password" type="password" placeholder="••••••••" />
       <button id="login-btn">Log In</button>
-      <p id="auth-msg"></p>
+      <p id="auth-msg" class="message"></p>
     </section>
 
     <section id="input-section" class="hidden">
       <h2>Paste Job‑Posting URL</h2>
       <input id="job-url" placeholder="https://job-posting-link.com/..." />
       <button id="link-parse-btn">Fetch & Parse</button>
-      <p id="link-msg"></p>
+      <p id="link-msg" class="message"></p>
     </section>
 
     <form id="confirm-form" class="hidden">
@@ -81,17 +85,17 @@
       <input name="job_url" id="job_url_form" />
       
       <label for="notes">Notes</label>
-      <input name="notes" id="notes" />
-      
-      <button type="submit">Save Application</button>
-      <p id="submit-msg"></p>
+      <textarea name="notes" id="notes" rows="3"></textarea> <button type="submit">Save Application</button>
+      <p id="submit-msg" class="message"></p>
     </form>
 
     <section id="sheet-section" class="hidden">
       <h2>Your Applications</h2>
-      <button id="add-row">+ Add Row</button>
-      <button id="export-csv" class="secondary">Export CSV</button>
-      <div id="grid"></div>
+      <div class="sheet-actions">
+        <button id="add-row">+ Add Row</button>
+        <button id="export-csv" class="secondary">Export CSV</button>
+      </div>
+      <div id="myGrid" class="ag-theme-quartz" style="height: 600px; width: 100%;"></div>
     </section>
 
     <section id="account-section" class="hidden">
@@ -109,8 +113,8 @@ const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co'; // Replace with
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s'; // Replace with your actual Supabase Anon Key
 const API_BASE = 'https://logmy-app.onrender.com'; // Replace with your actual API base
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-let grid;
 let currentUser = null;
+let gridApi = null; // To hold AG Grid API
 
 // ---------- DOM Elements ----------
 const email_input = document.getElementById('email');
@@ -125,6 +129,7 @@ const input_section = document.getElementById('input-section');
 const sheet_section = document.getElementById('sheet-section');
 const account_section = document.getElementById('account-section');
 const confirm_form = document.getElementById('confirm-form');
+const grid_div = document.querySelector('#myGrid');
 
 const auth_msg = document.getElementById('auth-msg');
 const link_msg = document.getElementById('link-msg');
@@ -144,14 +149,10 @@ const nav_account_link = document.getElementById('nav-account');
 function displayMessage(element, message, type) {
   if (!element) return;
   element.textContent = message;
-  element.className = 'message'; // Base class for messages
-  if (type === 'success') {
-    element.classList.add('success');
-  } else if (type === 'error') {
-    element.classList.add('error');
-  } else if (type === 'neutral') {
-    element.classList.add('neutral');
-  }
+  element.className = 'message'; // Base class
+  if (type === 'success') element.classList.add('success');
+  else if (type === 'error') element.classList.add('error');
+  else if (type === 'neutral') element.classList.add('neutral');
 }
 
 // ---------- UI Navigation / View Management ----------
@@ -159,22 +160,19 @@ function showSection(sectionToShow) {
   [auth_section, input_section, sheet_section, account_section, confirm_form].forEach(section => {
     if (section) section.classList.add('hidden');
   });
-  if (sectionToShow) {
-    sectionToShow.classList.remove('hidden');
-  }
+  if (sectionToShow) sectionToShow.classList.remove('hidden');
 }
 
 function showApplicationsView() {
-  showSection(null); // Hide all specific content sections first
+  showSection(null);
   input_section.classList.remove('hidden');
   sheet_section.classList.remove('hidden');
-  if (confirm_form.classList.contains('user-initiated')) { // Only show confirm form if it was actively opened
+  if (confirm_form.classList.contains('user-initiated')) {
       confirm_form.classList.remove('hidden');
   } else {
       confirm_form.classList.add('hidden');
   }
   account_section.classList.add('hidden');
-  
   nav_applications_link.classList.add('active');
   nav_account_link.classList.remove('active');
 }
@@ -190,24 +188,24 @@ function showAccountView() {
 
 function updateUIAfterLogin() {
   auth_section.classList.add('hidden');
-  main_title.classList.add('hidden'); // Hide the big centered title
-  app_header.classList.remove('hidden'); // Show the header/navbar
+  main_title.classList.add('hidden');
+  app_header.classList.remove('hidden');
   showApplicationsView();
   loadGrid();
 }
 
 function updateUIAfterLogout() {
-  app_header.classList.add('hidden'); // Hide header/navbar
-  main_title.classList.remove('hidden'); // Show the big centered title
-  showSection(auth_section); // Show login form
+  app_header.classList.add('hidden');
+  main_title.classList.remove('hidden');
+  showSection(auth_section);
   currentUser = null;
-  if (grid) {
-    grid.destroy(); // Destroy Tabulator instance if it exists
-    grid = null;
+  if (gridApi) {
+    gridApi.destroy();
+    gridApi = null;
   }
-  email_input.value = ''; // Clear login form
+  email_input.value = '';
   password_input.value = '';
-  auth_msg.textContent = ''; // Clear auth message
+  auth_msg.textContent = '';
   auth_msg.className = 'message';
 }
 
@@ -216,7 +214,6 @@ nav_applications_link.addEventListener('click', (e) => {
   e.preventDefault();
   if (currentUser) showApplicationsView();
 });
-
 nav_account_link.addEventListener('click', (e) => {
   e.preventDefault();
   if (currentUser) showAccountView();
@@ -234,9 +231,9 @@ login_btn.addEventListener('click', async () => {
   } else if (data && data.user) {
     currentUser = data.user;
     displayMessage(auth_msg, '✅ Login Successful!', 'success');
-    setTimeout(() => { // Give a moment to see the success message
+    setTimeout(() => {
         updateUIAfterLogin();
-        auth_msg.textContent = ''; // Clear message after transition
+        auth_msg.textContent = '';
         auth_msg.className = 'message';
     }, 500);
   }
@@ -244,22 +241,17 @@ login_btn.addEventListener('click', async () => {
 
 logout_btn.addEventListener('click', async () => {
   const { error } = await sb.auth.signOut();
-  if (error) {
-    // Display error on account page or as an alert
-    alert(`Logout failed: ${error.message}`);
-  } else {
-    updateUIAfterLogout();
-  }
+  if (error) alert(`Logout failed: ${error.message}`);
+  else updateUIAfterLogout();
 });
 
-// ---------- Check initial auth state ----------
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session && session.user) {
     currentUser = session.user;
     updateUIAfterLogin();
   } else {
-    updateUIAfterLogout(); // Ensures correct initial state if not logged in
+    updateUIAfterLogout();
   }
 })();
 
@@ -267,52 +259,40 @@ logout_btn.addEventListener('click', async () => {
 link_parse_btn.addEventListener('click', async () => {
   const url = job_url_input.value.trim();
   if (!url) {
-    displayMessage(link_msg, 'Please enter a URL.', 'error');
-    return;
+    displayMessage(link_msg, 'Please enter a URL.', 'error'); return;
   }
   displayMessage(link_msg, 'Fetching…', 'neutral');
-  confirm_form.classList.add('user-initiated'); // Mark that confirm form is opened by user action
+  confirm_form.classList.add('user-initiated');
   try {
     const res = await fetch(`${API_BASE}/link-parse`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
     });
     const data = await res.json();
     if (!res.ok) {
-      displayMessage(link_msg, `❌ ${data.error || 'Failed to parse link.'}`, 'error');
-      return;
+      displayMessage(link_msg, `❌ ${data.error || 'Failed to parse.'}`, 'error'); return;
     }
     displayMessage(link_msg, '✅ Parsed!', 'success');
     [...confirm_form.elements].forEach(el => {
-      if (el.name && data[el.name] !== undefined) {
-        el.value = data[el.name];
-      }
+      if (el.name && data[el.name] !== undefined) el.value = data[el.name];
     });
     if (!confirm_form.elements.application_date.value) {
       confirm_form.elements.application_date.value = new Date().toISOString().split('T')[0];
     }
-    if (nav_applications_link.classList.contains('active')) { // Only show if in applications view
-        confirm_form.classList.remove('hidden');
-    }
+    if (nav_applications_link.classList.contains('active')) confirm_form.classList.remove('hidden');
   } catch (e) {
-    console.error("Parsing error:", e);
-    displayMessage(link_msg, `❌ Network error or server issue.`, 'error');
+    displayMessage(link_msg, `❌ Network error.`, 'error');
   }
 });
 
-// ---------- Save form ----------
+// ---------- Save form (new application) ----------
 confirm_form.addEventListener('submit', async e => {
   e.preventDefault();
-  displayMessage(submit_msg, '', ''); 
-
+  displayMessage(submit_msg, '', '');
   const { data: { session }, error: sessionError } = await sb.auth.getSession();
   if (sessionError || !session) {
-    displayMessage(submit_msg, 'Authentication error. Please log in again.', 'error');
-    return;
+    displayMessage(submit_msg, 'Auth error. Log in.', 'error'); return;
   }
   const token = session.access_token;
-
   const payload = Object.fromEntries(new FormData(confirm_form));
   if (payload.application_date === '') payload.application_date = null;
   if (payload.deadline === '') payload.deadline = null;
@@ -321,88 +301,142 @@ confirm_form.addEventListener('submit', async e => {
   try {
     const res = await fetch(`${API_BASE}/submit`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(payload)
     });
-    const out = await res.json();
-    if (res.ok) {
+    const out = await res.json(); // Assuming backend returns the newly created row with its ID
+    if (res.ok && out.data && out.data.length > 0) {
       displayMessage(submit_msg, '✅ Saved!', 'success');
+      if (gridApi) gridApi.applyTransaction({ add: [out.data[0]], addIndex: 0 });
       confirm_form.reset();
       confirm_form.classList.add('hidden');
-      confirm_form.classList.remove('user-initiated'); // Reset user-initiated flag
-      job_url_input.value = ''; 
-      link_msg.textContent = ''; 
+      confirm_form.classList.remove('user-initiated');
+      job_url_input.value = '';
+      link_msg.textContent = '';
       link_msg.className = 'message';
-      if (grid) { // Check if grid exists
-          const newRowData = out.data && out.data.length > 0 ? out.data[0] : payload;
-          // If backend returns the full row with ID, use it. Otherwise, optimistic update with payload.
-          // This part needs alignment with what your /submit endpoint actually returns.
-          // For now, we just reload the grid as it's safer.
-          loadGrid(); 
-      } else {
-          loadGrid(); // Load grid if it wasn't loaded for some reason
-      }
     } else {
       displayMessage(submit_msg, `❌ ${out.error || 'Failed to save.'}`, 'error');
     }
   } catch (err) {
-    console.error("Submit error:", err);
-    displayMessage(submit_msg, `❌ Network error or server issue during save.`, 'error');
+    displayMessage(submit_msg, `❌ Network error during save.`, 'error');
   }
 });
 
-// ---------- Tabulator Grid ----------
+// ---------- AG Grid Setup ----------
+const columnDefs = [
+  { headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true },
+  { headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true },
+  { headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true },
+  { 
+    headerName: 'Type', field: 'job_type', editable: true, cellEditor: 'agSelectCellEditor',
+    cellEditorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part‑Time'] },
+    filter: 'agSetColumnFilter', sortable: true, resizable: true
+  },
+  { 
+    headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter', 
+    sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
+    filterParams: { comparator: dateFilterComparator }
+  },
+  { 
+    headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter', 
+    sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
+    filterParams: { comparator: dateFilterComparator }
+  },
+  { 
+    headerName: 'Status', field: 'status', editable: true, cellEditor: 'agSelectCellEditor',
+    cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] },
+    filter: 'agSetColumnFilter', sortable: true, resizable: true 
+  },
+  { 
+    headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor', 
+    cellEditorPopup: true, resizable: true, wrapText: true, autoHeight: true, minWidth: 200
+    // filter: 'agTextColumnFilter' // Enable if simple text filtering is needed
+  },
+  { 
+    headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false,
+    cellRenderer: params => {
+      if (params.value) {
+        return `<a href="${params.value.startsWith('http') ? params.value : 'http://' + params.value}" target="_blank" rel="noopener noreferrer">View</a>`;
+      }
+      return '';
+    },
+    editable: true // Allow editing URL
+  }
+];
+
+function dateFilterComparator(filterLocalDateAtMidnight, cellValue) {
+    if (cellValue == null) return -1; // Or 0 or 1, depending on how you want to handle nulls
+    const cellDate = new Date(cellValue);
+    const filterDate = new Date(filterLocalDateAtMidnight);
+    if (cellDate < filterDate) return -1;
+    if (cellDate > filterDate) return 1;
+    return 0;
+}
+
+const gridOptions = {
+  columnDefs: columnDefs,
+  rowData: null, // Will be loaded from Supabase
+  domLayout: 'normal', // 'autoHeight' or 'normal'
+  defaultColDef: {
+    flex: 1,
+    minWidth: 120, // Default min width for columns
+    floatingFilter: true, // Adds filter below header names
+    // editable: true, // Can be set here if most columns are editable
+  },
+  pagination: true,
+  paginationPageSize: 20,
+  paginationPageSizeSelector: [10, 20, 50, 100],
+  rowSelection: 'single', // Or 'multiple'
+  // stopEditingWhenCellsLoseFocus: true, // Good for usability
+  onCellValueChanged: async (event) => {
+    const updatedRow = event.data;
+    // Ensure date fields are correctly formatted or null for Supabase
+    if (updatedRow.application_date === '' || updatedRow.application_date === null) updatedRow.application_date = null;
+    if (updatedRow.deadline === '' || updatedRow.deadline === null) updatedRow.deadline = null;
+    
+    // Remove AG Grid internal ID if present, Supabase uses its own 'id'
+    const { agGridId, ...rowToUpdate } = updatedRow;
+
+    const { error: updateError } = await sb.from('applications').update(rowToUpdate).eq('id', rowToUpdate.id);
+    if (updateError) {
+      alert("Failed to update row: " + updateError.message);
+      // Consider reverting change in grid or re-fetching row
+      console.error("Supabase update error:", updateError);
+    } else {
+      console.log("Row updated successfully in Supabase:", rowToUpdate);
+    }
+  },
+  onGridReady: (params) => {
+    gridApi = params.api;
+    // You might want to auto-size columns after data is loaded
+    // params.api.autoSizeAllColumns();
+  }
+};
+
 async function loadGrid() {
-  if (!sb || !currentUser) { // Ensure user is logged in
+  if (!sb || !currentUser) {
     console.error("Supabase client not initialized or user not logged in.");
     return;
   }
   try {
     const { data, error } = await sb.from('applications')
-                                .select('*')
-                                // .eq('user_id', currentUser.id) // Make sure to filter by user_id if your table supports it
-                                .order('application_date', { ascending: false });
+      .select('*')
+      // .eq('user_id', currentUser.id) // UNCOMMENT if your table has user_id
+      .order('application_date', { ascending: false });
+
     if (error) {
       alert(`Error loading applications: ${error.message}`);
       return;
     }
-    
-    // If grid already exists, update its data, otherwise create new
-    if (grid && grid.setData) {
-        grid.setData(data);
-    } else {
-        grid = new Tabulator('#grid', {
-          height: 500, 
-          data: data,
-          layout: 'fitColumns',
-          reactiveData: true, 
-          columns: [
-            { title: 'Company', field: 'company', editor: 'input', headerFilter: "input" },
-            { title: 'Position', field: 'position', editor: 'input', headerFilter: "input" },
-            { title: 'Location', field: 'location', editor: 'input', headerFilter: "input" },
-            { title: 'Type', field: 'job_type', editor: 'select', headerFilter: true, editorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part-Time'] } },
-            { title: 'Applied', field: 'application_date', editor: 'date', hozAlign: 'center', sorter: "date", sorterParams: { format: "YYYY-MM-DD" } },
-            { title: 'Deadline', field: 'deadline', editor: 'date', hozAlign: 'center', sorter: "date", sorterParams: { format: "YYYY-MM-DD" } },
-            { title: 'Status', field: 'status', editor: 'select', headerFilter: true, editorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] } },
-            { title: 'Notes', field: 'notes', editor: 'textarea', formatter: "textarea", widthGrow: 2 },
-            { title: 'Job URL', field: 'job_url', formatter: "link", formatterParams: { label: "View", urlPrefix: "", target: "_blank" }, width: 80, hozAlign: "center", headerSort: false }
-          ],
-          cellEdited: async cell => {
-            const row = cell.getRow().getData();
-            if (row.application_date === '') row.application_date = null;
-            if (row.deadline === '') row.deadline = null;
-            
-            const { error: updateError } = await sb.from('applications').update(row).eq('id', row.id);
-            if (updateError) {
-              alert("Failed to update row: " + updateError.message);
-            }
-          }
-        });
-    }
 
+    if (gridApi) {
+      gridApi.setGridOption('rowData', data);
+    } else if (grid_div) { // Ensure grid_div exists
+      // Create the grid using the global agGrid object
+      agGrid.createGrid(grid_div, gridOptions);
+      if (gridApi) gridApi.setGridOption('rowData', data); // Set data after grid is ready via onGridReady
+    }
+    
   } catch (e) {
     console.error("Error in loadGrid:", e);
     alert("A critical error occurred while loading the grid.");
@@ -410,31 +444,35 @@ async function loadGrid() {
 }
 
 add_row_btn.addEventListener('click', async () => {
-  if (!currentUser) {
-      alert("Please log in to add a row.");
-      return;
+  if (!currentUser || !gridApi) {
+    alert("Please log in and ensure grid is initialized."); return;
   }
+  const newDate = new Date().toISOString().split('T')[0];
   const blank = {
-    // user_id: currentUser.id, // Add user_id if your table schema has it
-    company: '',
-    position: '',
-    location: '',
-    job_type: null,
-    application_date: new Date().toISOString().split('T')[0],
-    deadline: null,
+    // user_id: currentUser.id, // UNCOMMENT if your table has user_id
+    company: 'New Company', // Pre-fill some data to make it obvious
+    position: 'New Position',
+    application_date: newDate,
     status: 'Wishlist',
-    notes: null,
-    job_url: ''
   };
-  const { data, error } = await sb.from('applications').insert(blank).select();
+
+  // Insert into Supabase first to get the ID
+  const { data: insertedData, error } = await sb.from('applications').insert(blank).select();
   if (error) {
-    alert("Failed to add new row: " + error.message);
-  } else if (data && data.length > 0 && grid && grid.addData) {
-    grid.addData([data[0]], true);
+    alert("Failed to add new row to database: " + error.message);
+  } else if (insertedData && insertedData.length > 0) {
+    gridApi.applyTransaction({ add: [insertedData[0]], addIndex: 0 }); // Add to top
+    // Optionally, start editing the first cell of the new row
+    gridApi.ensureIndexVisible(0);
+    gridApi.setFocusedCell(0, 'company');
+    // gridApi.startEditingCell({ rowIndex: 0, colKey: 'company' }); // Doesn't work like this directly
   }
 });
 
-export_csv_btn.addEventListener('click', () => grid?.download('csv', 'applications.csv'));
+export_csv_btn.addEventListener('click', () => {
+  if (gridApi) gridApi.exportDataAsCsv({ fileName: 'applications.csv' });
+  else alert("Grid not available for export.");
+});
 
 </script>
 </body>

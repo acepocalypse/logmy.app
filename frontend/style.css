@@ -1,28 +1,23 @@
-/* --- Base Theme Variables (Color Palette) --- */
+/* style.css */
+
+/* --- Base Theme Variables (User's Palette) --- */
 :root {
-  --page-bg: #F8FCFB;                 /* Very Light Alice Blue/Mint tint for the overall page */
-  --content-bg: #FFFFFF;              /* Pure white for content cards/sections for contrast */
-  
-  --text-primary: #333333;            /* Dark grey for main text (good contrast) */
-  --text-secondary: #777777;          /* Lighter grey for placeholders, secondary info */
-
-  --accent-primary: #6892D5;          /* Cool Blue for primary buttons & interactive elements */
-  --accent-primary-hover: #577ABF;    /* A slightly darker shade of Cool Blue for hover */
-  
-  --accent-secondary: #79D1C3;        /* Opal for secondary actions, highlights, or icons */
-  --accent-secondary-hover: #63B9A9;  /* A slightly darker shade of Opal for hover */
-
-  --success-bg: #C9FDD7;              /* Celadon tint for background of success messages */
-  --success-text: #2A7556;            /* A darker green/teal for text on success background */
-  
-  --error-color: #D32F2F;             /* A slightly more modern red for error text */
-  --error-bg: #FEECEB;                /* Light red background for error messages */
-
-  --border-color: #DCE0E6;            /* A neutral light grey for borders that complements the palette */
-  --input-bg: #FFFFFF;                /* White background for input fields */
-  
-  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* Or 'Geist Sans', sans-serif if available from Geist UI */
-  --border-radius: 6px;               /* Consistent border radius */
+  --page-bg: #F8FCFB;
+  --content-bg: #FFFFFF;
+  --text-primary: #333333;
+  --text-secondary: #777777;
+  --accent-primary: #6892D5;
+  --accent-primary-hover: #577ABF;
+  --accent-secondary: #79D1C3;
+  --accent-secondary-hover: #63B9A9;
+  --success-bg: #C9FDD7;
+  --success-text: #2A7556;
+  --error-color: #D32F2F;
+  --error-bg: #FEECEB;
+  --border-color: #DCE0E6;
+  --input-bg: #FFFFFF;
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --border-radius: 6px;
 }
 
 /* --- Base Body Styles --- */
@@ -30,198 +25,158 @@ body {
   font-family: var(--font-family-sans);
   background-color: var(--page-bg);
   color: var(--text-primary);
-  max-width: 900px; /* Adjust as needed for overall layout */
-  margin: 0 auto; /* Center content */
-  padding: 2rem 1rem; /* Breathing room around the main content area */
-  line-height: 1.6; /* Improve readability */
+  max-width: 1200px; /* Increased max-width for better grid viewing */
+  margin: 0 auto;
+  padding: 0 1rem 2rem 1rem; /* No top padding if header is sticky */
+  line-height: 1.6;
 }
 
-/* --- Headings --- */
-h1, h2 {
-  color: var(--text-primary); /* Default heading color */
-  margin-top: 0; /* Remove default top margin for consistency */
-  margin-bottom: 1rem;
-}
-
-h1 { /* Main application title: logmy.app */
-  text-align: center;
-  margin-bottom: 2.5rem; /* More space below main title */
-  font-size: 2.5rem; /* Slightly larger */
-  font-weight: 600;
-  color: var(--accent-primary); /* Using Cool Blue for the main title for branding */
-}
-
-h2 { /* Section titles: Sign In, Paste Job-Posting URL, etc. */
-  font-size: 1.75rem;
-  font-weight: 500;
-  border-bottom: 1px solid var(--border-color); /* Subtle separator */
-  padding-bottom: 0.5rem;
-  margin-top: 2rem; /* Space above section titles */
-  /* color: var(--accent-secondary); /* Optional: Use secondary accent for section titles */
-}
-
-/* --- Section Styling --- */
-section {
+/* --- Header / Navigation Bar --- */
+#app-header {
   background-color: var(--content-bg);
-  padding: 1.5rem 2rem; /* More padding within sections */
-  border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Subtle shadow for depth */
-  margin-bottom: 2rem; /* Space between sections */
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%; /* Ensure header spans full width if body has padding */
+  box-sizing: border-box; /* Account for padding if added directly to header */
+  /* Adjust left/right if body has centered max-width and padding */
+  left: 0; 
+  right: 0;
+  max-width: 1200px; /* Match body's max-width if centered */
+  margin: 0 auto; /* Center header content with body */
 }
 
-/* --- Form Elements: Inputs, Selects, Labels --- */
-input[type="email"],
-input[type="password"],
-input[type="text"],
-input[type="date"],
-input[name="company"], /* Targeting specific inputs from your form */
-input[name="position"],
-input[name="location"],
-input[name="job_url"],
-input[name="notes"],
+.logo-container { display: flex; align-items: center; }
+#header-logo { height: 32px; width: 32px; margin-right: 0.75rem; }
+.app-name-header { font-size: 1.25rem; font-weight: 600; color: var(--accent-primary); }
+#app-header nav a {
+  margin-left: 1.5rem; text-decoration: none; color: var(--text-secondary);
+  font-weight: 500; padding-bottom: 0.25rem; border-bottom: 2px solid transparent;
+  transition: color 0.2s ease-in-out, border-bottom-color 0.2s ease-in-out;
+}
+#app-header nav a:hover { color: var(--accent-primary); }
+#app-header nav a.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 600; }
+
+/* --- Main Content Area --- */
+main {
+  padding-top: 1rem; /* Space below sticky header if header has fixed height, adjust as needed */
+  /* If header is not fixed height, this might need dynamic adjustment or ensure header has defined height */
+}
+
+#main-title.hidden { display: none; }
+h1 { /* Main application title: logmy.app (when header is hidden) */
+  text-align: center; margin-bottom: 2.5rem; font-size: 2.5rem; font-weight: 600; color: var(--accent-primary);
+}
+h2 { /* Section titles */
+  font-size: 1.75rem; font-weight: 500; border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem; margin-top: 1rem; /* Reduced top margin for sections */ margin-bottom: 1.5rem;
+}
+
+section {
+  background-color: var(--content-bg); padding: 1.5rem 2rem; border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 2rem;
+}
+
+/* --- Form Elements --- */
+input[type="email"], input[type="password"], input[type="text"], input[type="date"],
+textarea, /* Added textarea */
 select {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem; /* Space below each input/select */
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-sizing: border-box; /* Ensures padding and border don't increase total width */
-  font-size: 1rem;
-  background-color: var(--input-bg);
-  color: var(--text-primary);
+  width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--border-color);
+  border-radius: var(--border-radius); box-sizing: border-box; font-size: 1rem;
+  background-color: var(--input-bg); color: var(--text-primary);
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+textarea { line-height: 1.4; }
 
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="text"]:focus,
-input[type="date"]:focus,
-input[name="company"]:focus,
-input[name="position"]:focus,
-input[name="location"]:focus,
-input[name="job_url"]:focus,
-input[name="notes"]:focus,
-select:focus {
-  outline: none;
-  border-color: var(--accent-primary); /* Cool Blue for focus */
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); /* Subtle focus ring using Cool Blue */
+input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus, input[type="date"]:focus,
+textarea:focus, select:focus {
+  outline: none; border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
+label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-secondary); }
 
-label {
-  display: block; /* Makes label take full width, input appears on next line */
-  margin-bottom: 0.5rem; /* Space between label and input */
-  font-weight: 500;
-  color: var(--text-secondary); /* Slightly muted label text */
-}
-
-/* --- Buttons --- */
 button {
-  display: inline-block; /* Or 'block' if you always want them full width */
-  width: 100%; /* Default to full width for form buttons */
-  padding: 0.75rem 1.5rem;
-  background-color: var(--accent-primary); /* Cool Blue for primary buttons */
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: center;
-  transition: background-color 0.2s ease-in-out;
-  margin-top: 0.5rem; /* Space above buttons when they follow inputs */
-  margin-bottom: 0.5rem; /* Consistent spacing around buttons */
+  display: inline-block; padding: 0.75rem 1.5rem; background-color: var(--accent-primary);
+  color: white; border: none; border-radius: var(--border-radius); font-size: 1rem;
+  font-weight: 500; cursor: pointer; text-align: center;
+  transition: background-color 0.2s ease-in-out; margin-top: 0.5rem; margin-bottom: 0.5rem;
+}
+button:hover, button:focus { background-color: var(--accent-primary-hover); outline: none; }
+button.secondary { background-color: var(--accent-secondary); }
+button.secondary:hover, button.secondary:focus { background-color: var(--accent-secondary-hover); }
+
+/* Full width for form main buttons */
+#auth-section button, #confirm-form button[type="submit"], #input-section button {
+  width: 100%;
 }
 
-button:hover,
-button:focus { /* Combined hover and focus for visual consistency */
-  background-color: var(--accent-primary-hover); /* Darker Cool Blue on hover/focus */
-  outline: none; /* Remove default focus outline if custom shadow is preferred or not needed */
-}
-
-/* Example of a secondary button style (add class="secondary" to button HTML) */
-button.secondary {
-  background-color: var(--accent-secondary); /* Opal */
-  color: white; /* Ensure text is readable on this background */
-}
-button.secondary:hover,
-button.secondary:focus {
-  background-color: var(--accent-secondary-hover); /* Darker Opal */
-}
 
 /* --- Auth Section Specifics --- */
-#auth-section {
-  max-width: 400px; /* Constrain width for a standard auth form appearance */
-  margin-left: auto;  /* Center the auth section */
-  margin-right: auto; /* Center the auth section */
-  margin-top: 2rem; /* Add some space from the top or previous content */
+#auth-section { max-width: 400px; margin-left: auto; margin-right: auto; margin-top: 2rem; }
+#auth-section h2 { text-align: center; border-bottom: none; margin-bottom: 1.5rem; }
+
+/* --- Sheet Section & AG Grid --- */
+#sheet-section h2 { margin-bottom: 1rem; } /* Space between title and actions */
+.sheet-actions {
+  display: flex;
+  gap: 1rem; /* Space between buttons */
+  margin-bottom: 1rem;
+}
+.sheet-actions button {
+  width: auto; /* Allow buttons to size to content */
 }
 
-#auth-section h2 { /* "Sign In" title */
-  text-align: center;
-  border-bottom: none; /* Remove border if card provides enough separation */
-  margin-bottom: 1.5rem; /* More space below "Sign In" */
+/* AG Grid specific overrides if needed - usually the theme is quite good */
+/* Example: Make header background match one of your accent colors slightly */
+/*
+.ag-theme-quartz .ag-header {
+  background-color: color-mix(in srgb, var(--accent-secondary) 15%, transparent);
 }
-
-/* --- User Feedback Messages (Auth, Link Parse, Submit) --- */
-#auth-msg, 
-#link-msg, 
-#submit-msg {
-  margin-top: 1rem;
-  padding: 0.75rem 1rem; /* More padding for messages */
-  border-radius: var(--border-radius);
-  text-align: center;
-  min-height: 1.2em; /* Prevent layout shift when text content changes */
-  font-weight: 500;
-  border: 1px solid transparent; /* Base border */
+.ag-theme-quartz .ag-header-cell-label {
+  font-weight: 600;
+  color: var(--text-primary);
 }
+*/
 
-/* Assumes you add .success or .error class via JavaScript */
-#auth-msg.success, 
-#link-msg.success, 
-#submit-msg.success {
-  background-color: var(--success-bg); /* Celadon tint background */
-  color: var(--success-text);          /* Darker green text */
-  border-color: color-mix(in srgb, var(--success-text) 30%, transparent); /* Subtle border matching text */
+/* --- Account Page Section --- */
+#account-section { max-width: 600px; margin-left: auto; margin-right: auto; }
+#account-section h2 { text-align: center; border-bottom: none; margin-bottom: 1.5rem; }
+.account-details p {
+  font-size: 1.1rem; margin-bottom: 1rem; padding: 0.75rem;
+  background-color: var(--page-bg); border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
 }
+.account-details p strong { color: var(--text-primary); }
+#logout-btn {
+  background-color: var(--error-color); width: auto; display: block;
+  margin-left: auto; margin-right: auto; padding: 0.75rem 2rem; margin-top: 1.5rem;
+}
+#logout-btn:hover { background-color: color-mix(in srgb, var(--error-color) 80%, black); }
 
-#auth-msg.error, 
-#link-msg.error, 
-#submit-msg.error {
-  background-color: var(--error-bg); /* Light red background */
-  color: var(--error-color);         /* Error red text */
-  border-color: color-mix(in srgb, var(--error-color) 30%, transparent); /* Subtle border matching text */
+/* --- User Feedback Messages --- */
+.message { /* Ensure this base class exists */
+  margin-top: 1rem; padding: 0.75rem 1rem; border-radius: var(--border-radius);
+  text-align: center; min-height: 1.2em; font-weight: 500; border: 1px solid transparent;
+}
+.message.success {
+  background-color: var(--success-bg); color: var(--success-text);
+  border-color: color-mix(in srgb, var(--success-text) 30%, transparent);
+}
+.message.error {
+  background-color: var(--error-bg); color: var(--error-color);
+  border-color: color-mix(in srgb, var(--error-color) 30%, transparent);
+}
+.message.neutral {
+  background-color: color-mix(in srgb, var(--accent-secondary) 20%, var(--content-bg)); /* Mix with content for subtlety */
+  color: var(--text-primary);
+  border-color: var(--accent-secondary);
 }
 
 /* --- Utility --- */
-.hidden {
-  display: none !important; /* Ensure it overrides other display properties if needed */
-}
-
-/* --- Tabulator Grid --- */
-/* Remove default border from #grid if section's box-shadow is enough */
-#grid { 
-  margin-top: 1.5rem; 
-  /* border: 1px solid var(--border-color); /* Optional: if you want a border directly on the grid container */
-}
-
-/* You might want to further customize Tabulator's theme to match your palette.
-   Tabulator uses its own class names. You'd inspect the rendered table 
-   and override styles for .tabulator, .tabulator-header, .tabulator-row, etc.
-   For example:
-   .tabulator {
-     border-color: var(--border-color);
-     border-radius: var(--border-radius);
-     background-color: var(--content-bg);
-   }
-   .tabulator .tabulator-header {
-     background-color: color-mix(in srgb, var(--page-bg) 70%, var(--content-bg)); Color from page bg but lighter
-     color: var(--text-primary);
-     border-bottom-color: var(--border-color);
-   }
-   .tabulator .tabulator-row {
-     background-color: var(--content-bg);
-   }
-   .tabulator .tabulator-row:hover {
-     background-color: color-mix(in srgb, var(--page-bg) 50%, var(--content-bg));
-   }
-*/
+.hidden { display: none !important; }
