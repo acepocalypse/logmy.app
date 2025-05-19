@@ -9,7 +9,7 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css">
-  
+
   <link rel="stylesheet" href="style.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -100,8 +100,9 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const API_BASE = 'https://logmy-app.onrender.com';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
-let gridApi = null; 
+let gridApi = null;
 
+// DOM Elements
 const email_input = document.getElementById('email');
 const password_input = document.getElementById('password');
 const job_url_input = document.getElementById('job-url');
@@ -125,6 +126,7 @@ const export_csv_btn = document.getElementById('export-csv');
 const nav_applications_link = document.getElementById('nav-applications');
 const nav_account_link = document.getElementById('nav-account');
 
+// Utility Functions
 function displayMessage(element, message, type) {
   if (!element) return;
   element.textContent = message;
@@ -169,7 +171,7 @@ function updateUIAfterLogin() {
   main_title.classList.add('hidden');
   app_header.classList.remove('hidden');
   showApplicationsView();
-  loadGrid(); 
+  loadGrid();
 }
 
 function updateUIAfterLogout() {
@@ -187,6 +189,7 @@ function updateUIAfterLogout() {
   auth_msg.className = 'message';
 }
 
+// Event Listeners
 nav_applications_link.addEventListener('click', (e) => { e.preventDefault(); if (currentUser) showApplicationsView(); });
 nav_account_link.addEventListener('click', (e) => { e.preventDefault(); if (currentUser) showAccountView(); });
 
@@ -204,7 +207,7 @@ login_btn.addEventListener('click', async () => {
 
 logout_btn.addEventListener('click', async () => {
   const { error } = await sb.auth.signOut();
-  if (error) alert(`Logout failed: ${error.message}`);
+  if (error) alert(`Logout failed: ${error.message}`); // Consider replacing alert with displayMessage
   else updateUIAfterLogout();
 });
 
@@ -257,75 +260,91 @@ confirm_form.addEventListener('submit', async e => {
 });
 
 // --- AG Grid Column Definitions ---
+// Added wrapText: true and autoHeight: true to text-based columns for multi-line display.
+// Adjusted minWidth for better initial layout.
 const columnDefs = [
-  { 
-    headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter', 
+  {
+    headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter',
     sortable: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true // Add wrapText and autoHeight
+    wrapText: true,     // Enable text wrapping
+    autoHeight: true,   // Enable auto row height based on content
+    minWidth: 150       // Minimum width for the column
   },
-  { 
-    headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter', 
+  {
+    headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter',
     sortable: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true // Add wrapText and autoHeight
+    wrapText: true,     // Enable text wrapping
+    autoHeight: true,   // Enable auto row height based on content
+    minWidth: 150       // Minimum width for the column
   },
-  { 
-    headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter', 
+  {
+    headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter',
     sortable: true, resizable: true, suppressMenu: true,
-    wrapText: true, autoHeight: true // Add wrapText and autoHeight
+    wrapText: true,     // Enable text wrapping
+    autoHeight: true,   // Enable auto row height based on content
+    minWidth: 130       // Minimum width for the column
   },
-  { 
+  {
     headerName: 'Type', field: 'job_type', editable: true, cellEditor: 'agSelectCellEditor',
     cellEditorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part‑Time'] },
     filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 120 // Ensure a decent minimum width for select dropdowns
+    minWidth: 120
+    // wrapText and autoHeight are generally not needed for select dropdowns
   },
-  { 
-    headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter', 
+  {
+    headerName: 'Applied', field: 'application_date', editable: true, filter: 'agDateColumnFilter',
     sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
     filterParams: { comparator: dateFilterComparator }, suppressMenu: true,
-    minWidth: 150 // Dates need a bit more space
+    minWidth: 130
   },
-  { 
-    headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter', 
+  {
+    headerName: 'Deadline', field: 'deadline', editable: true, filter: 'agDateColumnFilter',
     sortable: true, resizable: true, cellEditor: 'agDateCellEditor',
     filterParams: { comparator: dateFilterComparator }, suppressMenu: true,
-    minWidth: 150 // Dates need a bit more space
+    minWidth: 130
   },
-  { 
+  {
     headerName: 'Status', field: 'status', editable: true, cellEditor: 'agSelectCellEditor',
     cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] },
     filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 130 
+    minWidth: 130
   },
-  { 
-    headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor', 
-    cellEditorPopup: true, resizable: true, wrapText: true, autoHeight: true, 
-    minWidth: 200, // Good minWidth for notes
-    suppressMenu: true
+  {
+    headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor',
+    cellEditorPopup: true, resizable: true, suppressMenu: true,
+    wrapText: true,     // Enable text wrapping
+    autoHeight: true,   // Enable auto row height based on content
+    minWidth: 200       // Notes can be longer, so a larger minWidth
   },
-  { 
+  {
     headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false,
     cellRenderer: params => {
       if (params.value) {
         const url = params.value.startsWith('http') ? params.value : 'http://' + params.value;
+        // If displaying the full URL and it could be long, wrapText/autoHeight would apply.
+        // For a "View" link, it's less critical.
+        // To make the link itself wrap if it's very long and the cell is narrow:
+        // return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="grid-link" style="word-break: break-all;">View</a>`;
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="grid-link">View</a>`;
       }
       return '';
     },
     editable: true, suppressMenu: true,
-    minWidth: 100 // Width for the "View" link
+    wrapText: true,   // If you want the URL itself to wrap if displayed directly
+    autoHeight: true, // If you want the URL itself to wrap if displayed directly
+    minWidth: 120     // Increased minWidth slightly
   },
   {
     headerName: 'Actions',
-    field: 'id', 
-    width: 80, // Fixed width for delete icon button is better than minWidth
-    pinned: 'right', 
+    field: 'id',
+    width: 80, // Fixed width for the delete button column
+    pinned: 'right',
     cellRenderer: params => {
       const button = document.createElement('button');
       button.classList.add('delete-row-btn');
-      button.innerHTML = '&#x1F5D1;'; 
+      button.innerHTML = '&#x1F5D1;'; // Trash can icon
       button.title = 'Delete Application';
-      button.style.lineHeight = '1'; // Vertically center icon if needed
+      button.style.lineHeight = '1';
       button.addEventListener('click', () => handleDeleteRow(params.node.data));
       return button;
     },
@@ -334,10 +353,10 @@ const columnDefs = [
 ];
 
 function dateFilterComparator(filterLocalDateAtMidnight, cellValue) {
-    if (cellValue == null) return -1; 
+    if (cellValue == null) return -1;
     const cellDate = new Date(cellValue);
-    const filterDate = new Date(filterLocalDateAtMidnight); // AG Grid passes date object
-    if (isNaN(cellDate.getTime())) return -1; // Invalid date in cell
+    const filterDate = new Date(filterLocalDateAtMidnight);
+    if (isNaN(cellDate.getTime())) return -1;
     if (cellDate < filterDate) return -1;
     if (cellDate > filterDate) return 1;
     return 0;
@@ -345,35 +364,43 @@ function dateFilterComparator(filterLocalDateAtMidnight, cellValue) {
 
 // --- AG Grid Options ---
 const gridOptions = {
-  columnDefs: columnDefs, // Assign the globally defined columnDefs
+  columnDefs: columnDefs,
   rowData: null,
-  domLayout: 'normal',
+  domLayout: 'normal', // 'autoHeight' can also be used but 'normal' is often better for performance with many rows/cols.
+                       // The autoHeight in colDef works on a per-cell basis for row height.
   defaultColDef: {
-    flex: 1,
-    minWidth: 120,
+    flex: 1,             // Columns will flex to fill available grid width
+    minWidth: 100,       // Default minimum width for columns (can be overridden in colDef)
     floatingFilter: true,
     resizable: true,
     sortable: true,
     tooltipValueGetter: () => null, // Disable AG Grid default tooltips
-    suppressMenu: true, // Hides the hamburger menu on columns by default
+    suppressMenu: true,
   },
   pagination: true,
   paginationPageSize: 20,
   paginationPageSizeSelector: [10, 20, 50, 100],
   rowSelection: 'single',
-  getRowId: params => params.data.id, 
-  deltaRowDataMode: true, 
+  getRowId: params => params.data.id,
+  deltaRowDataMode: true,
+  // The onCellValueChanged event is used to update data in Supabase
   onCellValueChanged: async (event) => {
     const updatedRow = event.data;
+    // Ensure dates are null if empty, Supabase might require this for date types
     if (updatedRow.application_date === '' || updatedRow.application_date === null) updatedRow.application_date = null;
     if (updatedRow.deadline === '' || updatedRow.deadline === null) updatedRow.deadline = null;
-    const { agGridId, ...rowToUpdate } = updatedRow; // Exclude AG Grid's internal ID if it adds one
+
+    const { agGridId, ...rowToUpdate } = updatedRow; // Exclude AG Grid's internal ID if present
     const { error: updateError } = await sb.from('applications').update(rowToUpdate).eq('id', rowToUpdate.id);
     if (updateError) {
-      alert("Failed to update row: " + updateError.message);
+      // Consider using displayMessage for user feedback instead of alert
+      displayMessage(submit_msg, `Failed to update row: ${updateError.message}`, 'error');
       console.error("Supabase update error:", updateError);
     } else {
       console.log("Row updated successfully:", rowToUpdate);
+      // Optionally clear the message or show a temporary success message
+      // displayMessage(submit_msg, '✅ Row updated!', 'success');
+      // setTimeout(() => { if (submit_msg.textContent === '✅ Row updated!') displayMessage(submit_msg, '', ''); }, 2000);
     }
   },
   onGridReady: async (params) => {
@@ -382,9 +409,13 @@ const gridOptions = {
     if (currentUser) {
       await fetchAndSetGridData();
     }
+    // Initially size columns to fit the grid width.
+    // The flex: 1 in defaultColDef will handle resizing dynamically.
+    // params.api.sizeColumnsToFit(); // You can use this for an initial fit.
   }
 };
 
+// Data Handling for AG Grid
 async function fetchAndSetGridData() {
   if (!gridApi) { console.log("Grid API not ready for fetchAndSetGridData."); return; }
   console.log("Fetching data for grid...");
@@ -392,17 +423,17 @@ async function fetchAndSetGridData() {
   try {
     const { data, error } = await sb.from('applications').select('*')
       // .eq('user_id', currentUser.id) // UNCOMMENT for multi-user
-      .order('application_date', { ascending: false });
+      .order('application_date', { ascending: false, nullsFirst: false }); // Keep null dates at the end or beginning as preferred
     if (error) {
-      alert(`Error loading applications: ${error.message}`);
+      displayMessage(sheet_section.querySelector('.message') || submit_msg, `Error loading applications: ${error.message}`, 'error'); // Use a message display
       gridApi.hideOverlay(); return;
     }
     console.log("Data fetched (" + (data ? data.length : 0) + " rows), setting to grid.");
-    gridApi.setGridOption('rowData', data || []); // Ensure data is an array
+    gridApi.setGridOption('rowData', data || []);
     gridApi.hideOverlay();
   } catch (e) {
     console.error("Error in fetchAndSetGridData:", e);
-    alert("Critical error loading grid data.");
+    displayMessage(sheet_section.querySelector('.message') || submit_msg, "Critical error loading grid data.", 'error');
     if (gridApi) gridApi.hideOverlay();
   }
 }
@@ -412,49 +443,69 @@ async function loadGrid() {
   if (gridApi) {
     console.log("Grid exists, fetching new data.");
     await fetchAndSetGridData();
-  } else if (grid_div && !gridApi) { // Ensure grid_div exists AND gridApi is not yet set
+  } else if (grid_div && !gridApi) {
     console.log("Initializing AG Grid.");
-    agGrid.createGrid(grid_div, gridOptions); 
-    // onGridReady will now handle the initial data load
+    agGrid.createGrid(grid_div, gridOptions);
+    // onGridReady will handle the initial data load
   } else if (!grid_div) {
     console.error("Grid container #myGrid not found.");
   }
 }
 
 async function handleDeleteRow(rowData) {
-  if (!rowData || !rowData.id) { alert("Cannot delete row: missing data or ID."); return; }
-  if (!confirm(`Delete "${rowData.position}" at "${rowData.company}"?`)) return;
+  if (!rowData || !rowData.id) {
+    displayMessage(submit_msg, "Cannot delete row: missing data or ID.", 'error');
+    return;
+  }
+  if (!confirm(`Delete "${rowData.position || 'this application'}" at "${rowData.company || 'this company'}"?`)) return;
+
   const { error: deleteError } = await sb.from('applications').delete().eq('id', rowData.id);
   if (deleteError) {
-    alert(`Failed to delete: ${deleteError.message}`);
+    displayMessage(submit_msg, `Failed to delete: ${deleteError.message}`, 'error');
     console.error("Supabase delete error:", deleteError);
   } else {
     if (gridApi) gridApi.applyTransaction({ remove: [rowData] });
     console.log("Application deleted:", rowData);
+    displayMessage(submit_msg, '✅ Application deleted.', 'success');
+    setTimeout(() => { if (submit_msg.textContent === '✅ Application deleted.') displayMessage(submit_msg, '', ''); }, 2000);
   }
 }
 
 add_row_btn.addEventListener('click', async () => {
-  if (!currentUser || !gridApi) { alert("Please log in; grid not ready."); return; }
+  if (!currentUser || !gridApi) {
+    displayMessage(submit_msg, "Please log in; grid not ready.", 'error');
+    return;
+  }
   const newDate = new Date().toISOString().split('T')[0];
   const blank = {
-    company: 'New Company', position: 'New Position', application_date: newDate, status: 'Wishlist',
+    company: '', // Start with blank fields for user to fill
+    position: '',
+    application_date: newDate,
+    status: 'Wishlist',
     // user_id: currentUser.id, // UNCOMMENT for multi-user
   };
+  displayMessage(submit_msg, 'Adding new row...', 'neutral');
   const { data: insertedData, error } = await sb.from('applications').insert(blank).select();
   if (error) {
-    alert("Failed to add row to DB: " + error.message);
+    displayMessage(submit_msg, "Failed to add row to DB: " + error.message, 'error');
   } else if (insertedData && insertedData.length > 0) {
     gridApi.applyTransaction({ add: [insertedData[0]], addIndex: 0 });
     gridApi.ensureIndexVisible(0);
-    // For starting edit, AG Grid usually requires a bit more setup or calling it on a specific cell instance
-    // For now, focusing on adding the row.
+    // Start editing the first editable cell of the new row
+    const firstCol = gridApi.getAllDisplayedColumns().find(col => col.isCellEditable(insertedData[0]));
+    if (firstCol) {
+        gridApi.startEditingCell({
+            rowIndex: 0,
+            colKey: firstCol.getColId()
+        });
+    }
+    displayMessage(submit_msg, '✅ New row added. You can edit it now.', 'success');
   }
 });
 
 export_csv_btn.addEventListener('click', () => {
   if (gridApi) gridApi.exportDataAsCsv({ fileName: 'applications.csv' });
-  else alert("Grid not ready for export.");
+  else displayMessage(submit_msg, "Grid not ready for export.", 'error');
 });
 
 </script>

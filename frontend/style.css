@@ -1,5 +1,3 @@
-/* style.css */
-
 :root {
   --page-bg: #F8FCFB;
   --content-bg: #FFFFFF;
@@ -17,6 +15,8 @@
   --input-bg: #FFFFFF;
   --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --border-radius: 6px;
+  --grid-cell-line-height: 1.4; /* Define line height for grid cells for consistency */
+  --grid-cell-max-lines: 2;    /* Define max lines for grid cells */
 }
 
 body {
@@ -40,236 +40,282 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
-  width: 100%; 
+  width: 100%;
   box-sizing: border-box;
-  left: 0; 
+  left: 0;
   right: 0;
-  max-width: 1200px; 
-  margin: 0 auto; 
+  max-width: 1200px; /* Ensure header also respects max-width */
+  margin: 0 auto; /* Center header */
 }
 
-.logo-container { 
-  display: flex; 
-  align-items: center; 
+.logo-container {
+  display: flex;
+  align-items: center;
 }
 
-#header-logo { 
-  height: 32px; 
-  width: 32px; 
-  margin-right: 0.75rem; 
+#header-logo {
+  height: 32px;
+  width: 32px;
+  margin-right: 0.75rem;
 }
 
-.app-name-header { 
-  font-size: 1.25rem; 
-  font-weight: 600; 
-  color: var(--accent-primary); 
+.app-name-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--accent-primary);
 }
 
 #app-header nav a {
-  margin-left: 1.5rem; 
-  text-decoration: none; 
+  margin-left: 1.5rem;
+  text-decoration: none;
   color: var(--text-secondary);
-  font-weight: 500; 
-  padding-bottom: 0.25rem; 
+  font-weight: 500;
+  padding-bottom: 0.25rem;
   border-bottom: 2px solid transparent;
   transition: color 0.2s ease-in-out, border-bottom-color 0.2s ease-in-out;
 }
 
-#app-header nav a:hover { 
-  color: var(--accent-primary); 
+#app-header nav a:hover {
+  color: var(--accent-primary);
 }
 
-#app-header nav a.active { 
-  color: var(--accent-primary); 
-  border-bottom-color: var(--accent-primary); 
-  font-weight: 600; 
+#app-header nav a.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+  font-weight: 600;
 }
 
 main {
-  padding-top: 1rem; 
+  padding-top: 1rem;
 }
 
-#main-title.hidden { 
-  display: none; 
+#main-title.hidden {
+  display: none;
 }
 
 h1 {
-  text-align: center; 
-  margin-bottom: 2.5rem; 
-  font-size: 2.5rem; 
-  font-weight: 600; 
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-size: 2.5rem;
+  font-weight: 600;
   color: var(--accent-primary);
   margin-top: 0;
 }
 
 h2 {
-  font-size: 1.75rem; 
-  font-weight: 500; 
+  font-size: 1.75rem;
+  font-weight: 500;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem; 
-  margin-top: 1rem; 
+  padding-bottom: 0.5rem;
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
 }
 
 section {
-  background-color: var(--content-bg); 
-  padding: 1.5rem 2rem; 
+  background-color: var(--content-bg);
+  padding: 1.5rem 2rem;
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   margin-bottom: 2rem;
 }
 
-input[type="email"], 
-input[type="password"], 
-input[type="text"], 
+input[type="email"],
+input[type="password"],
+input[type="text"],
 input[type="date"],
 textarea,
 select {
-  width: 100%; 
-  padding: 0.75rem; 
-  margin-bottom: 1rem; 
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius); 
-  box-sizing: border-box; 
+  border-radius: var(--border-radius);
+  box-sizing: border-box;
   font-size: 1rem;
-  background-color: var(--input-bg); 
+  background-color: var(--input-bg);
   color: var(--text-primary);
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-textarea { 
-  line-height: 1.4; 
-  min-height: 80px; 
+textarea {
+  line-height: 1.4;
+  min-height: 80px;
 }
 
-label { 
-  display: block; 
-  margin-bottom: 0.5rem; 
-  font-weight: 500; 
-  color: var(--text-secondary); 
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 button {
-  display: inline-block; 
-  padding: 0.75rem 1.5rem; 
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
   background-color: var(--accent-primary);
-  color: white; 
-  border: none; 
-  border-radius: var(--border-radius); 
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
   font-size: 1rem;
-  font-weight: 500; 
-  cursor: pointer; 
+  font-weight: 500;
+  cursor: pointer;
   text-align: center;
-  transition: background-color 0.2s ease-in-out; 
-  margin-top: 0.5rem; 
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-button.secondary { 
-  background-color: var(--accent-secondary); 
+button.secondary {
+  background-color: var(--accent-secondary);
 }
 
-#auth-section button, 
-#confirm-form button[type="submit"], 
+#auth-section button,
+#confirm-form button[type="submit"],
 #input-section button {
   width: 100%;
 }
 
-#auth-section { 
-  max-width: 400px; 
-  margin-left: auto; 
-  margin-right: auto; 
-  margin-top: 2rem; 
+#auth-section {
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 2rem;
 }
-#auth-section h2 { 
-  text-align: center; 
-  border-bottom: none; 
-  margin-bottom: 1.5rem; 
+#auth-section h2 {
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 1.5rem;
 }
 
-#sheet-section h2 { 
-  margin-bottom: 1rem; 
+#sheet-section h2 {
+  margin-bottom: 1rem;
 }
 .sheet-actions {
   display: flex;
-  gap: 1rem; 
+  gap: 1rem;
   margin-bottom: 1rem;
+  align-items: center; /* Align items vertically */
 }
 .sheet-actions button {
-  width: auto; 
+  width: auto;
 }
 
-#account-section { 
-  max-width: 600px; 
-  margin-left: auto; 
-  margin-right: auto; 
+#account-section {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
-#account-section h2 { 
-  text-align: center; 
-  border-bottom: none; 
-  margin-bottom: 1.5rem; 
+#account-section h2 {
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 1.5rem;
 }
 .account-details p {
-  font-size: 1.1rem; 
-  margin-bottom: 1rem; 
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
   padding: 0.75rem;
-  background-color: var(--page-bg); 
+  background-color: var(--page-bg);
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
 }
-.account-details p strong { 
-  color: var(--text-primary); 
+.account-details p strong {
+  color: var(--text-primary);
 }
 #logout-btn {
-  background-color: var(--error-color); 
-  width: auto; 
+  background-color: var(--error-color);
+  width: auto;
   display: block;
-  margin-left: auto; 
-  margin-right: auto; 
-  padding: 0.75rem 2rem; 
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0.75rem 2rem;
   margin-top: 1.5rem;
 }
 
 .message {
-  margin-top: 1rem; 
-  padding: 0.75rem 1rem; 
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--border-radius);
-  text-align: center; 
-  min-height: 1.2em; 
-  font-weight: 500; 
+  text-align: center;
+  min-height: 1.2em; /* Ensure space even if empty */
+  font-weight: 500;
   border: 1px solid transparent;
   box-sizing: border-box;
+  /* Added transition for smoother appearance/disappearance if content changes */
+  transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+.message:empty { /* Hide if empty, but min-height will keep space */
+    /* opacity: 0; */ /* Or display: none; if you don't want the space */
 }
 .message.success {
-  background-color: var(--success-bg); 
+  background-color: var(--success-bg);
   color: var(--success-text);
   border-color: color-mix(in srgb, var(--success-text) 30%, transparent);
 }
 .message.error {
-  background-color: var(--error-bg); 
+  background-color: var(--error-bg);
   color: var(--error-color);
   border-color: color-mix(in srgb, var(--error-color) 30%, transparent);
 }
 .message.neutral {
-  background-color: color-mix(in srgb, var(--accent-secondary) 20%, var(--content-bg)); 
+  background-color: color-mix(in srgb, var(--accent-secondary) 20%, var(--content-bg));
   color: var(--text-primary);
   border-color: var(--accent-secondary);
 }
 
-.hidden { 
-  display: none !important; 
+.hidden {
+  display: none !important;
 }
 
 /* --- AG Grid Specific Styles --- */
+
+/* Default AG Grid cell styling */
 .ag-theme-quartz .ag-cell {
-    /* line-height: normal; /* AG Grid's default usually works well with autoHeight */
-    /* The `wrapText: true` and `autoHeight: true` in column definitions (JS) are primary for text flow */
+    /* AG Grid's default padding is usually sensible.
+       If text looks too cramped with the scrollbars or new line height,
+       you can adjust padding here. e.g., padding: 2px 4px; */
+    /* line-height is now primarily controlled by .ag-cell-value for content */
+    display: flex; /* Helps with vertical alignment if needed, though autoHeight usually handles it */
+    align-items: center; /* Vertically center content if row is taller than content */
 }
 
+/* Style for cell content: limit text to two lines and allow horizontal scrolling */
+.ag-theme-quartz .ag-cell-value {
+  white-space: normal; /* Allow text to wrap, works with wrapText:true in colDef */
+  line-height: var(--grid-cell-line-height); /* Use CSS variable for line height */
+  max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em); /* Max height for specified lines (1em is ~font-size) */
+  overflow-y: hidden;  /* Hide vertical overflow beyond the max-height */
+  overflow-x: auto;    /* Allow horizontal scrolling for any line wider than the cell */
+  padding-right: 8px;  /* Add some padding so scrollbar doesn't hide text content if it appears */
+  box-sizing: border-box;
+  /* The following properties for line clamping are an alternative if autoHeight doesn't behave
+     well with overflow-x and you prefer ellipsis. However, it conflicts with overflow-x: auto.
+     We are prioritizing overflow-x: auto here based on the request.
+  */
+  /*
+  display: -webkit-box;
+  -webkit-line-clamp: var(--grid-cell-max-lines);
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  */
+}
+
+/* Ensure header text can also wrap if needed and looks good */
 .ag-theme-quartz .ag-header-cell-label {
-    /* Styles for header text if needed beyond theme defaults */
-    /* white-space: normal !important; */ /* If header text also needs to wrap */
+    white-space: normal !important; /* Allow header text to wrap */
+    text-overflow: ellipsis;        /* Add ellipsis if header text is too long even after wrapping */
+    overflow: hidden;
+    line-height: var(--grid-cell-line-height); /* Consistent line height */
+    padding-top: 4px;    /* Add some padding for better appearance */
+    padding-bottom: 4px;
+    /* max-height can be set if you want to limit header height too */
+    /* max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em); */
+}
+
+/* Ensure that the AG Grid's autoHeight calculation works well with our custom styles */
+.ag-theme-quartz .ag-row {
+    /* This might not be strictly necessary if autoHeight in colDefs works as expected,
+       but can help ensure rows adapt. */
 }
 
 .delete-row-btn {
@@ -279,22 +325,23 @@ button.secondary {
   border-radius: var(--border-radius);
   padding: 0.3rem 0.6rem;
   font-size: 0.9rem;
-  line-height: 1; 
+  line-height: 1; /* Keep icon centered */
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
-  width: auto;
-  margin: 0; 
-  vertical-align: middle;
+  width: auto; /* Ensure button is not full width */
+  margin: 0; /* Remove default button margins */
+  vertical-align: middle; /* Align button nicely if cell is taller */
 }
 .delete-row-btn:hover {
   background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
 }
 
-.grid-link { 
+.grid-link {
     color: var(--accent-primary);
     text-decoration: underline;
-    display: inline-block; 
-    padding: 2px 0; 
+    display: inline-block; /* Or block if you want it to take full width of cell content area */
+    padding: 2px 0;
+    word-break: break-all; /* Allow long URLs without spaces to break and wrap if needed */
 }
 .grid-link:hover {
     color: var(--accent-primary-hover);
@@ -302,25 +349,28 @@ button.secondary {
 
 
 /* --- Diagnostic Fix for "White Square Pop-up" (Focus Styles) --- */
-*:focus, 
+/* These rules remove the default browser outline on focused elements. */
+*:focus,
 *:focus-visible {
-  outline: none !important; 
+  outline: none !important;
+  /* box-shadow: none !important; /* Also remove box-shadow if that was part of the "white square" */
 }
 
-input[type="email"]:focus, 
-input[type="password"]:focus, 
-input[type="text"]:focus, 
+/* Custom focus styles for form elements for better accessibility and UX */
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
 input[type="date"]:focus,
-textarea:focus, 
+textarea:focus,
 select:focus {
-  outline: none !important; 
+  /* outline: none !important; /* Already handled by global *:focus */
   border-color: var(--accent-primary) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent) !important;
 }
 
 button:focus {
-  outline: none !important;
-  background-color: var(--accent-primary-hover) !important;
+  /* outline: none !important; /* Already handled by global *:focus */
+  background-color: var(--accent-primary-hover) !important; /* Ensure this is desired for all buttons */
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
 }
 
@@ -334,8 +384,23 @@ button.secondary:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color) 30%, transparent) !important;
 }
 
+/* Custom focus for navigation links */
 #app-header nav a:focus {
-  outline: none !important;
+  /* outline: none !important; /* Already handled by global *:focus */
   color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
+  /* Using a border or underline might be better than box-shadow for nav links */
+  /* border-bottom-color: var(--accent-primary) !important; */
+  box-shadow: 0 2px 0 0 var(--accent-primary) inset !important; /* Example: inset bottom border */
+  /* Remove the generic box-shadow if it looks odd here */
+  /* box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important; */
+}
+
+/* AG Grid specific focus - ensure it doesn't interfere or add back unwanted outlines */
+.ag-theme-quartz .ag-cell-focus {
+    /* AG Grid adds its own cell focus borders. If you want to remove them: */
+    /* border: none !important; */
+    /* outline: none !important; */
+    /* box-shadow: none !important; */
+    /* Or style them to match your theme: */
+    /* border: 1px solid var(--accent-primary) !important; */
 }
