@@ -14,170 +14,269 @@
   <script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
 </head>
 <body>
-  <h1>logmy.app</h1>
 
-  <section id="auth-section">
-    <h2>Sign In</h2>
-    <label for="email">Email</label>
-    <input id="email" type="email" placeholder="you@example.com" />
-    <label for="password">Password</label>
-    <input id="password" type="password" placeholder="••••••••" />
-    <button id="login-btn">Log In</button>
-    <p id="auth-msg"></p>
-  </section>
+  <header id="app-header" class="hidden"> <div class="logo-container">
+      <img src="favicon.svg" alt="Logmy.app Logo" id="header-logo" />
+      <span class="app-name-header">logmy.app</span>
+    </div>
+    <nav>
+      <a href="#" id="nav-applications">Applications</a>
+      <a href="#" id="nav-account">Account</a>
+    </nav>
+  </header>
 
-  <section id="input-section" class="hidden">
-    <h2>Paste Job‑Posting URL</h2>
-    <input id="job-url" placeholder="https://job-posting-link.com/..." />
-    <button id="link-parse-btn">Fetch & Parse</button>
-    <p id="link-msg"></p>
-  </section>
+  <main> <h1 id="main-title">logmy.app</h1> <section id="auth-section">
+      <h2>Sign In</h2>
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@example.com" />
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••" />
+      <button id="login-btn">Log In</button>
+      <p id="auth-msg"></p>
+    </section>
 
-  <form id="confirm-form" class="hidden">
-    <h2>Review Details</h2>
-    <label for="company">Company</label>
-    <input name="company" id="company" />
-    
-    <label for="position">Position</label>
-    <input name="position" id="position" />
-    
-    <label for="location">Location</label>
-    <input name="location" id="location" />
-    
-    <label for="job_type">Job Type</label>
-    <select name="job_type" id="job_type">
-      <option value=""></option>
-      <option value="Internship">Internship</option>
-      <option value="Full-Time">Full‑Time</option>
-      <option value="Contract">Contract</option>
-      <option value="Part-Time">Part‑Time</option>
-    </select>
-    
-    <label for="application_date">Application Date</label>
-    <input name="application_date" id="application_date" type="date" />
-    
-    <label for="deadline">Deadline</label>
-    <input name="deadline" id="deadline" type="date" />
-    
-    <label for="status">Status</label>
-    <select name="status" id="status">
-      <option value="Applied">Applied</option>
-      <option value="Interview">Interview</option>
-      <option value="Offer">Offer</option>
-      <option value="Rejected">Rejected</option>
-      <option value="Wishlist">Wishlist</option>
-    </select>
-    
-    <label for="job_url_form">Job URL</label> <input name="job_url" id="job_url_form" />
-    
-    <label for="notes">Notes</label>
-    <input name="notes" id="notes" />
-    
-    <button type="submit">Save Application</button>
-    <p id="submit-msg"></p>
-  </form>
+    <section id="input-section" class="hidden">
+      <h2>Paste Job‑Posting URL</h2>
+      <input id="job-url" placeholder="https://job-posting-link.com/..." />
+      <button id="link-parse-btn">Fetch & Parse</button>
+      <p id="link-msg"></p>
+    </section>
 
-  <section id="sheet-section" class="hidden">
-    <h2>Your Applications</h2>
-    <button id="add-row">+ Add Row</button>
-    <button id="export-csv" class="secondary">Export CSV</button> <div id="grid"></div>
-  </section>
+    <form id="confirm-form" class="hidden">
+      <h2>Review Details</h2>
+      <label for="company">Company</label>
+      <input name="company" id="company" />
+      
+      <label for="position">Position</label>
+      <input name="position" id="position" />
+      
+      <label for="location">Location</label>
+      <input name="location" id="location" />
+      
+      <label for="job_type">Job Type</label>
+      <select name="job_type" id="job_type">
+        <option value=""></option>
+        <option value="Internship">Internship</option>
+        <option value="Full-Time">Full‑Time</option>
+        <option value="Contract">Contract</option>
+        <option value="Part-Time">Part‑Time</option>
+      </select>
+      
+      <label for="application_date">Application Date</label>
+      <input name="application_date" id="application_date" type="date" />
+      
+      <label for="deadline">Deadline</label>
+      <input name="deadline" id="deadline" type="date" />
+      
+      <label for="status">Status</label>
+      <select name="status" id="status">
+        <option value="Applied">Applied</option>
+        <option value="Interview">Interview</option>
+        <option value="Offer">Offer</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Wishlist">Wishlist</option>
+      </select>
+      
+      <label for="job_url_form">Job URL</label>
+      <input name="job_url" id="job_url_form" />
+      
+      <label for="notes">Notes</label>
+      <input name="notes" id="notes" />
+      
+      <button type="submit">Save Application</button>
+      <p id="submit-msg"></p>
+    </form>
+
+    <section id="sheet-section" class="hidden">
+      <h2>Your Applications</h2>
+      <button id="add-row">+ Add Row</button>
+      <button id="export-csv" class="secondary">Export CSV</button>
+      <div id="grid"></div>
+    </section>
+
+    <section id="account-section" class="hidden">
+      <h2>Account Information</h2>
+      <div class="account-details">
+        <p><strong>Email:</strong> <span id="user-email-display"></span></p>
+      </div>
+      <button id="logout-btn">Log Out</button>
+    </section>
+  </main>
 
 <script>
-const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co';
+// ---------- SUPABASE & API Constants ----------
+const SUPABASE_URL = 'https://jjneofugjszgivmisvup.supabase.co'; // Replace with your actual URL
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbmVvZnVnanN6Z2l2bWlzdnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODg1NjQsImV4cCI6MjA2MjA2NDU2NH0.LnIMBqUpi0O3SvsGJmKR3_jkC7y7wiybpdzEV6KVy1s'; // Replace with your actual Supabase Anon Key
-const API_BASE      = 'https://logmy-app.onrender.com'; // Replace with your actual API base if different
+const API_BASE = 'https://logmy-app.onrender.com'; // Replace with your actual API base
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let grid;
+let currentUser = null;
 
 // ---------- DOM Elements ----------
-const email_input       = document.getElementById('email'); // Get email input element
-const password_input    = document.getElementById('password'); // Get password input element
-const job_url_input     = document.getElementById('job-url'); // Get job URL input element
+const email_input = document.getElementById('email');
+const password_input = document.getElementById('password');
+const job_url_input = document.getElementById('job-url');
 
-const auth_section  = document.getElementById('auth-section');
+const app_header = document.getElementById('app-header');
+const main_title = document.getElementById('main-title');
+
+const auth_section = document.getElementById('auth-section');
 const input_section = document.getElementById('input-section');
 const sheet_section = document.getElementById('sheet-section');
-const confirm_form  = document.getElementById('confirm-form');
+const account_section = document.getElementById('account-section');
+const confirm_form = document.getElementById('confirm-form');
 
-const auth_msg      = document.getElementById('auth-msg');
-const link_msg      = document.getElementById('link-msg');
-const submit_msg    = document.getElementById('submit-msg');
+const auth_msg = document.getElementById('auth-msg');
+const link_msg = document.getElementById('link-msg');
+const submit_msg = document.getElementById('submit-msg');
+const user_email_display = document.getElementById('user-email-display');
 
-const login_btn     = document.getElementById('login-btn');
+const login_btn = document.getElementById('login-btn');
+const logout_btn = document.getElementById('logout-btn');
 const link_parse_btn = document.getElementById('link-parse-btn');
-const add_row_btn    = document.getElementById('add-row');
+const add_row_btn = document.getElementById('add-row');
 const export_csv_btn = document.getElementById('export-csv');
+
+const nav_applications_link = document.getElementById('nav-applications');
+const nav_account_link = document.getElementById('nav-account');
 
 // ---------- Helper function to display messages ---
 function displayMessage(element, message, type) {
+  if (!element) return;
   element.textContent = message;
-  element.className = ''; // Reset classes
+  element.className = 'message'; // Base class for messages
   if (type === 'success') {
     element.classList.add('success');
   } else if (type === 'error') {
     element.classList.add('error');
+  } else if (type === 'neutral') {
+    element.classList.add('neutral');
   }
 }
 
-// ---------- JWT Helper (if needed directly in frontend, otherwise handled by Supabase client) ---
-// async function jwt() { 
-//   const { data, error } = await sb.auth.getSession();
-//   if (error || !data.session) {
-//     console.error('Error getting session or session not found:', error);
-//     return null;
-//   }
-//   return data.session.access_token;
-// }
+// ---------- UI Navigation / View Management ----------
+function showSection(sectionToShow) {
+  [auth_section, input_section, sheet_section, account_section, confirm_form].forEach(section => {
+    if (section) section.classList.add('hidden');
+  });
+  if (sectionToShow) {
+    sectionToShow.classList.remove('hidden');
+  }
+}
 
+function showApplicationsView() {
+  showSection(null); // Hide all specific content sections first
+  input_section.classList.remove('hidden');
+  sheet_section.classList.remove('hidden');
+  if (confirm_form.classList.contains('user-initiated')) { // Only show confirm form if it was actively opened
+      confirm_form.classList.remove('hidden');
+  } else {
+      confirm_form.classList.add('hidden');
+  }
+  account_section.classList.add('hidden');
+  
+  nav_applications_link.classList.add('active');
+  nav_account_link.classList.remove('active');
+}
+
+function showAccountView() {
+  showSection(account_section);
+  if (currentUser && currentUser.email) {
+    user_email_display.textContent = currentUser.email;
+  }
+  nav_applications_link.classList.remove('active');
+  nav_account_link.classList.add('active');
+}
+
+function updateUIAfterLogin() {
+  auth_section.classList.add('hidden');
+  main_title.classList.add('hidden'); // Hide the big centered title
+  app_header.classList.remove('hidden'); // Show the header/navbar
+  showApplicationsView();
+  loadGrid();
+}
+
+function updateUIAfterLogout() {
+  app_header.classList.add('hidden'); // Hide header/navbar
+  main_title.classList.remove('hidden'); // Show the big centered title
+  showSection(auth_section); // Show login form
+  currentUser = null;
+  if (grid) {
+    grid.destroy(); // Destroy Tabulator instance if it exists
+    grid = null;
+  }
+  email_input.value = ''; // Clear login form
+  password_input.value = '';
+  auth_msg.textContent = ''; // Clear auth message
+  auth_msg.className = 'message';
+}
+
+// ---------- Event Listeners for Navigation ----------
+nav_applications_link.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (currentUser) showApplicationsView();
+});
+
+nav_account_link.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (currentUser) showAccountView();
+});
 
 // ---------- Auth ----------
 login_btn.addEventListener('click', async () => {
-  displayMessage(auth_msg, 'Logging in…', ''); // Neutral message
-  const { error } = await sb.auth.signInWithPassword({ 
-    email: email_input.value, // Use .value from the input element
-    password: password_input.value // Use .value from the input element
+  displayMessage(auth_msg, 'Logging in…', 'neutral');
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: email_input.value,
+    password: password_input.value
   });
   if (error) {
     displayMessage(auth_msg, `❌ ${error.message}`, 'error');
-  } else {
+  } else if (data && data.user) {
+    currentUser = data.user;
     displayMessage(auth_msg, '✅ Login Successful!', 'success');
-    auth_section.classList.add('hidden');
-    input_section.classList.remove('hidden');
-    sheet_section.classList.remove('hidden');
-    loadGrid();
+    setTimeout(() => { // Give a moment to see the success message
+        updateUIAfterLogin();
+        auth_msg.textContent = ''; // Clear message after transition
+        auth_msg.className = 'message';
+    }, 500);
+  }
+});
+
+logout_btn.addEventListener('click', async () => {
+  const { error } = await sb.auth.signOut();
+  if (error) {
+    // Display error on account page or as an alert
+    alert(`Logout failed: ${error.message}`);
+  } else {
+    updateUIAfterLogout();
   }
 });
 
 // ---------- Check initial auth state ----------
 (async () => {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-        auth_section.classList.add('hidden');
-        input_section.classList.remove('hidden');
-        sheet_section.classList.remove('hidden');
-        loadGrid();
-    } else {
-        auth_section.classList.remove('hidden');
-        input_section.classList.add('hidden');
-        sheet_section.classList.add('hidden');
-    }
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    currentUser = session.user;
+    updateUIAfterLogin();
+  } else {
+    updateUIAfterLogout(); // Ensures correct initial state if not logged in
+  }
 })();
-
 
 // ---------- URL Parse ----------
 link_parse_btn.addEventListener('click', async () => {
-  const url = job_url_input.value.trim(); // Use .value from the input element
+  const url = job_url_input.value.trim();
   if (!url) {
     displayMessage(link_msg, 'Please enter a URL.', 'error');
     return;
   }
-  displayMessage(link_msg, 'Fetching…', '');
+  displayMessage(link_msg, 'Fetching…', 'neutral');
+  confirm_form.classList.add('user-initiated'); // Mark that confirm form is opened by user action
   try {
     const res = await fetch(`${API_BASE}/link-parse`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({url})
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
     });
     const data = await res.json();
     if (!res.ok) {
@@ -186,15 +285,16 @@ link_parse_btn.addEventListener('click', async () => {
     }
     displayMessage(link_msg, '✅ Parsed!', 'success');
     [...confirm_form.elements].forEach(el => {
-      if (el.name && data[el.name] !== undefined) { // Check if data[el.name] exists
+      if (el.name && data[el.name] !== undefined) {
         el.value = data[el.name];
       }
     });
-    // Set application_date to today if not provided by parser
     if (!confirm_form.elements.application_date.value) {
-        confirm_form.elements.application_date.value = new Date().toISOString().split('T')[0];
+      confirm_form.elements.application_date.value = new Date().toISOString().split('T')[0];
     }
-    confirm_form.classList.remove('hidden');
+    if (nav_applications_link.classList.contains('active')) { // Only show if in applications view
+        confirm_form.classList.remove('hidden');
+    }
   } catch (e) {
     console.error("Parsing error:", e);
     displayMessage(link_msg, `❌ Network error or server issue.`, 'error');
@@ -204,7 +304,7 @@ link_parse_btn.addEventListener('click', async () => {
 // ---------- Save form ----------
 confirm_form.addEventListener('submit', async e => {
   e.preventDefault();
-  displayMessage(submit_msg, '', ''); // Clear previous message
+  displayMessage(submit_msg, '', ''); 
 
   const { data: { session }, error: sessionError } = await sb.auth.getSession();
   if (sessionError || !session) {
@@ -214,12 +314,10 @@ confirm_form.addEventListener('submit', async e => {
   const token = session.access_token;
 
   const payload = Object.fromEntries(new FormData(confirm_form));
-  // Ensure empty date fields are sent as null
   if (payload.application_date === '') payload.application_date = null;
   if (payload.deadline === '') payload.deadline = null;
 
-
-  displayMessage(submit_msg, 'Saving...', '');
+  displayMessage(submit_msg, 'Saving...', 'neutral');
   try {
     const res = await fetch(`${API_BASE}/submit`, {
       method: 'POST',
@@ -234,9 +332,19 @@ confirm_form.addEventListener('submit', async e => {
       displayMessage(submit_msg, '✅ Saved!', 'success');
       confirm_form.reset();
       confirm_form.classList.add('hidden');
-      job_url_input.value = ''; // Clear the job URL input field as well
-      link_msg.textContent = ''; // Clear the parse message
-      loadGrid();
+      confirm_form.classList.remove('user-initiated'); // Reset user-initiated flag
+      job_url_input.value = ''; 
+      link_msg.textContent = ''; 
+      link_msg.className = 'message';
+      if (grid) { // Check if grid exists
+          const newRowData = out.data && out.data.length > 0 ? out.data[0] : payload;
+          // If backend returns the full row with ID, use it. Otherwise, optimistic update with payload.
+          // This part needs alignment with what your /submit endpoint actually returns.
+          // For now, we just reload the grid as it's safer.
+          loadGrid(); 
+      } else {
+          loadGrid(); // Load grid if it wasn't loaded for some reason
+      }
     } else {
       displayMessage(submit_msg, `❌ ${out.error || 'Failed to save.'}`, 'error');
     }
@@ -248,68 +356,81 @@ confirm_form.addEventListener('submit', async e => {
 
 // ---------- Tabulator Grid ----------
 async function loadGrid() {
-  if (!sb) {
-    console.error("Supabase client not initialized.");
+  if (!sb || !currentUser) { // Ensure user is logged in
+    console.error("Supabase client not initialized or user not logged in.");
     return;
   }
   try {
-    const { data, error } = await sb.from('applications').select('*').order('application_date', {ascending: false});
+    const { data, error } = await sb.from('applications')
+                                .select('*')
+                                // .eq('user_id', currentUser.id) // Make sure to filter by user_id if your table supports it
+                                .order('application_date', { ascending: false });
     if (error) {
       alert(`Error loading applications: ${error.message}`);
       return;
     }
-    grid = new Tabulator('#grid', {
-      height: 500, // Or dynamically set height
-      data: data,
-      layout: 'fitColumns',
-      reactiveData: true, // Enable reactive data updates
-      columns: [
-        {title:'Company', field:'company', editor:'input', headerFilter:"input"},
-        {title:'Position', field:'position', editor:'input', headerFilter:"input"},
-        {title:'Location', field:'location', editor:'input', headerFilter:"input"},
-        {title:'Type', field:'job_type', editor:'select', headerFilter:true, editorParams:{values:['','Internship','Full‑Time','Contract', 'Part-Time']}},
-        {title:'Applied', field:'application_date', editor:'date', hozAlign:'center', sorter:"date", sorterParams:{format:"YYYY-MM-DD"}}, // Added sorter
-        {title:'Deadline', field:'deadline', editor:'date', hozAlign:'center', sorter:"date", sorterParams:{format:"YYYY-MM-DD"}}, // Added sorter
-        {title:'Status', field:'status', editor:'select', headerFilter:true, editorParams:{values:['Applied','Interview','Offer','Rejected','Wishlist']}},
-        {title:'Notes', field:'notes', editor:'textarea', formatter:"textarea", width: 200}, // Using textarea for notes
-        {title:'Job URL', field:'job_url', formatter:"link", formatterParams:{label:"Link", urlPrefix:"", target:"_blank"}, width:80, hozAlign:"center", headerSort:false} // Link formatter
-      ],
-      cellEdited: async cell => {
-        const row = cell.getRow().getData();
-        // Ensure empty date fields are sent as null if cleared
-        if (row.application_date === '') row.application_date = null;
-        if (row.deadline === '') row.deadline = null;
-        
-        const { error: updateError } = await sb.from('applications').update(row).eq('id', row.id);
-        if (updateError) {
-            alert("Failed to update row: " + updateError.message);
-            // Potentially revert cell value or reload data
-        }
-      }
-    });
-  } catch(e) {
+    
+    // If grid already exists, update its data, otherwise create new
+    if (grid && grid.setData) {
+        grid.setData(data);
+    } else {
+        grid = new Tabulator('#grid', {
+          height: 500, 
+          data: data,
+          layout: 'fitColumns',
+          reactiveData: true, 
+          columns: [
+            { title: 'Company', field: 'company', editor: 'input', headerFilter: "input" },
+            { title: 'Position', field: 'position', editor: 'input', headerFilter: "input" },
+            { title: 'Location', field: 'location', editor: 'input', headerFilter: "input" },
+            { title: 'Type', field: 'job_type', editor: 'select', headerFilter: true, editorParams: { values: ['', 'Internship', 'Full‑Time', 'Contract', 'Part-Time'] } },
+            { title: 'Applied', field: 'application_date', editor: 'date', hozAlign: 'center', sorter: "date", sorterParams: { format: "YYYY-MM-DD" } },
+            { title: 'Deadline', field: 'deadline', editor: 'date', hozAlign: 'center', sorter: "date", sorterParams: { format: "YYYY-MM-DD" } },
+            { title: 'Status', field: 'status', editor: 'select', headerFilter: true, editorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] } },
+            { title: 'Notes', field: 'notes', editor: 'textarea', formatter: "textarea", widthGrow: 2 },
+            { title: 'Job URL', field: 'job_url', formatter: "link", formatterParams: { label: "View", urlPrefix: "", target: "_blank" }, width: 80, hozAlign: "center", headerSort: false }
+          ],
+          cellEdited: async cell => {
+            const row = cell.getRow().getData();
+            if (row.application_date === '') row.application_date = null;
+            if (row.deadline === '') row.deadline = null;
+            
+            const { error: updateError } = await sb.from('applications').update(row).eq('id', row.id);
+            if (updateError) {
+              alert("Failed to update row: " + updateError.message);
+            }
+          }
+        });
+    }
+
+  } catch (e) {
     console.error("Error in loadGrid:", e);
     alert("A critical error occurred while loading the grid.");
   }
 }
 
 add_row_btn.addEventListener('click', async () => {
+  if (!currentUser) {
+      alert("Please log in to add a row.");
+      return;
+  }
   const blank = {
-    company: '', 
-    position: '', 
-    location: '', 
-    job_type: null, 
-    application_date: new Date().toISOString().split('T')[0], 
-    deadline: null, 
-    status: 'Wishlist', // Default to Wishlist or Applied
+    // user_id: currentUser.id, // Add user_id if your table schema has it
+    company: '',
+    position: '',
+    location: '',
+    job_type: null,
+    application_date: new Date().toISOString().split('T')[0],
+    deadline: null,
+    status: 'Wishlist',
     notes: null,
     job_url: ''
   };
-  const { data, error } = await sb.from('applications').insert(blank).select(); // .select() to get the inserted row back with its ID
+  const { data, error } = await sb.from('applications').insert(blank).select();
   if (error) {
     alert("Failed to add new row: " + error.message);
-  } else if (data && data.length > 0) {
-    grid.addData([data[0]], true); // Add data to the top of the table
+  } else if (data && data.length > 0 && grid && grid.addData) {
+    grid.addData([data[0]], true);
   }
 });
 
