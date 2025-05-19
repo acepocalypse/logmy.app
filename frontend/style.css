@@ -21,7 +21,8 @@
   --border-radius: 6px;
   --grid-cell-line-height: 1.4; /* Define line height for grid cells for consistency */
   --grid-cell-max-lines: 2;    /* Define max lines for grid cells */
-  --grid-header-bg: color-mix(in srgb, var(--page-bg) 50%, var(--content-bg)); /* Slightly different bg for header/filters */
+  --grid-header-bg: color-mix(in srgb, var(--page-bg) 70%, var(--content-bg)); /* Slightly different bg for header/filters */
+  --grid-filter-height: 38px; /* Define a consistent height for filter inputs */
 }
 
 body {
@@ -141,6 +142,7 @@ select {
   background-color: var(--input-bg);
   color: var(--text-primary);
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  min-height: var(--grid-filter-height); /* Apply consistent height to general inputs too */
 }
 
 textarea {
@@ -169,6 +171,10 @@ button {
   transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  min-height: var(--grid-filter-height); /* Consistent height for buttons */
+  display: inline-flex; /* For vertical centering of text */
+  align-items: center;
+  justify-content: center;
 }
 
 button.secondary {
@@ -230,7 +236,7 @@ button.secondary {
 #logout-btn {
   background-color: var(--error-color);
   width: auto;
-  display: block;
+  display: block; /* Will be overridden by inline-flex from general button if not specific enough */
   margin-left: auto;
   margin-right: auto;
   padding: 0.75rem 2rem;
@@ -277,10 +283,13 @@ button.secondary {
 .ag-theme-quartz .ag-cell {
     display: flex;
     align-items: center; /* Vertically center content */
-    /* For the delete button column, we'll add horizontal centering */
+    padding-left: 8px; /* Add some default padding to cells */
+    padding-right: 8px;
 }
 .ag-theme-quartz .ag-cell[col-id="id"] { /* Target action column specifically for delete button */
     justify-content: center; /* Horizontally center the button in its cell */
+    padding-left: 4px; /* Reduce padding for icon column */
+    padding-right: 4px;
 }
 
 
@@ -291,8 +300,9 @@ button.secondary {
   max-height: calc(var(--grid-cell-line-height) * var(--grid-cell-max-lines) * 1em);
   overflow-y: hidden;
   overflow-x: auto;   /* This enables horizontal scroll WITHIN the cell if content overflows */
-  padding-right: 8px;
+  /* padding-right: 8px; /* Padding is now on .ag-cell */
   box-sizing: border-box;
+  width: 100%; /* Ensure cell value takes full width of cell padding box */
 }
 
 /* Ensure header text can also wrap if needed and looks good */
@@ -301,14 +311,16 @@ button.secondary {
     text-overflow: ellipsis;
     overflow: hidden;
     line-height: var(--grid-cell-line-height);
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding: 8px 6px; /* More padding for header text */
+    font-weight: 500; /* Slightly bolder header text */
 }
 .ag-theme-quartz .ag-header-row { /* Style for the entire header row */
     background-color: var(--grid-header-bg);
+    border-bottom: 1px solid var(--border-color); /* Stronger separator below header */
 }
 .ag-theme-quartz .ag-header-cell { /* Style for individual header cells */
-    border-right: 1px solid var(--border-color); /* Add subtle separator */
+    border-right: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); /* Softer separator */
+    padding: 0; /* Remove default AG Grid header cell padding, control with label padding */
 }
 .ag-theme-quartz .ag-header-cell:last-child {
     border-right: none; /* Remove separator from the last header cell */
@@ -316,45 +328,76 @@ button.secondary {
 
 
 /* Style for Floating Filter Row inputs to make them more elegant */
-.ag-theme-quartz .ag-floating-filter-input input,
-.ag-theme-quartz .ag-floating-filter-button { /* Also style filter button if present */
+.ag-theme-quartz .ag-floating-filter-input input, /* Standard text filter */
+.ag-theme-quartz .ag-floating-filter-input select, /* For set filters if they use a select */
+.ag-theme-quartz .ag-custom-filter input[type="text"], /* For date filter input part */
+.ag-theme-quartz .ag-floating-filter-button {
     font-family: var(--font-family-sans);
-    font-size: 0.9rem; /* Slightly smaller font for filters */
-    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem; /* Increased padding for more height */
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     background-color: var(--input-bg);
     color: var(--text-primary);
-    width: 100%; /* Make input take full width of its container */
+    width: 100%;
     box-sizing: border-box;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    height: auto; /* Let padding define height */
-    min-height: 30px; /* Ensure a minimum tap height */
+    height: var(--grid-filter-height); /* Explicit height for filter inputs */
+    min-height: var(--grid-filter-height); /* Ensure it respects this height */
+    display: block; /* Ensure it takes full width and respects height */
 }
 
-.ag-theme-quartz .ag-floating-filter-input input:focus {
+/* Specifically target the input within the date filter component */
+.ag-theme-quartz .ag-filter-filter.ag-date-filter input[type="text"] {
+    height: var(--grid-filter-height);
+    min-height: var(--grid-filter-height);
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+
+.ag-theme-quartz .ag-floating-filter-input input:focus,
+.ag-theme-quartz .ag-floating-filter-input select:focus,
+.ag-theme-quartz .ag-custom-filter input[type="text"]:focus {
     border-color: var(--input-focus-border) !important;
     box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
-    outline: none !important; /* Ensure global outline removal doesn't get overridden by AG Grid */
+    outline: none !important;
 }
 
-.ag-theme-quartz .ag-floating-filter-button {
+.ag-theme-quartz .ag-floating-filter-button { /* e.g., clear button or dropdown for set filter */
     background-color: transparent;
     border: none;
     color: var(--text-secondary);
-    padding: 0.4rem;
     cursor: pointer;
+    height: var(--grid-filter-height);
+    min-height: var(--grid-filter-height);
+    padding: 0 0.5rem; /* Adjust padding for buttons */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .ag-theme-quartz .ag-floating-filter-button:hover {
     color: var(--accent-primary);
 }
+/* Wrapper for the filter input and its button (if any, like clear button) */
+.ag-theme-quartz .ag-floating-filter-input {
+    display: flex;
+    align-items: center;
+}
+.ag-theme-quartz .ag-floating-filter-input .ag-input-wrapper { /* AG Grid often wraps inputs */
+    width: 100%;
+}
 
-.ag-theme-quartz .ag-floating-filter-body { /* Container for the input */
-    padding: 0 4px; /* Add some padding around the filter input within its cell */
+
+.ag-theme-quartz .ag-floating-filter-body { /* Container for the input within the filter cell */
+    padding: 6px 4px; /* Add some padding around the filter input within its cell */
+    display: flex; /* Help center content if cell is taller */
+    align-items: center;
 }
 .ag-theme-quartz .ag-header-cell-comp-wrapper .ag-floating-filter { /* The entire filter row */
     background-color: var(--grid-header-bg);
-    border-top: 1px solid var(--border-color); /* Separator line above filters */
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); /* Softer separator line above filters */
+    /* min-height: calc(var(--grid-filter-height) + 12px); /* Ensure filter row is tall enough */
 }
 
 
@@ -363,24 +406,25 @@ button.secondary {
   color: white !important;
   border: none;
   border-radius: var(--border-radius);
-  padding: 0.4rem 0.8rem; /* Adjusted padding for a slightly better feel */
-  font-size: 1rem;  /* Slightly larger icon/text */
+  padding: 0.4rem 0.8rem;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-  width: auto;
+  width: auto; /* Fit content */
+  min-width: 36px; /* Ensure a minimum clickable area */
+  height: calc(var(--grid-filter-height) - 8px); /* Make it slightly smaller than filter inputs */
   margin: 0;
-  display: inline-flex; /* Helps with centering icon if it's an SVG or font icon */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* vertical-align: middle; /* display:flex on parent cell handles this */
 }
 .delete-row-btn:hover {
   background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
-  transform: scale(1.05); /* Slight scale effect on hover */
+  transform: scale(1.05);
 }
 .delete-row-btn:active {
-    transform: scale(0.95); /* Slight shrink effect on click */
+    transform: scale(0.95);
 }
 
 .grid-link {
@@ -388,7 +432,7 @@ button.secondary {
     text-decoration: underline;
     display: inline-block;
     padding: 2px 0;
-    word-break: break-all; /* Ensure long URLs break and wrap if needed */
+    word-break: break-all;
 }
 .grid-link:hover {
     color: var(--accent-primary-hover);
@@ -413,10 +457,9 @@ select:focus {
 }
 
 button:focus {
-  /* background-color: var(--accent-primary-hover) !important; */ /* Handled by specific button types or general hover */
   box-shadow: 0 0 0 3px var(--input-focus-shadow) !important;
 }
-button:not(.delete-row-btn):focus { /* Apply hover style on focus for non-delete buttons */
+button:not(.delete-row-btn):focus {
     background-color: var(--accent-primary-hover) !important;
 }
 button.secondary:focus {
@@ -436,20 +479,11 @@ button.secondary:focus {
 
 /* AG Grid specific focus - ensure it doesn't interfere or add back unwanted outlines */
 .ag-theme-quartz .ag-cell-focus {
-    /* Default AG Grid focus can be a bit strong.
-       You can customize it or remove it if your cell content has its own focus indication (e.g., inputs) */
-    /* border: 1px solid var(--input-focus-border) !important; */ /* Example: match input focus */
-    /* box-shadow: 0 0 0 2px var(--input-focus-shadow) !important; */
-    border-color: transparent !important; /* Remove AG Grid's default cell focus border if not desired */
-    background-color: color-mix(in srgb, var(--accent-primary) 8%, transparent) !important; /* Subtle background on focused cell */
+    border-color: transparent !important;
+    background-color: color-mix(in srgb, var(--accent-primary) 8%, transparent) !important;
 }
 
-/* Ensure the grid itself doesn't have unwanted horizontal scrollbars
-   if the sum of minWidths of columns is less than or equal to the grid container width.
-   This is mostly controlled by JS (flex, minWidth) but CSS can ensure container behaves.
-*/
 #myGrid {
     width: 100%;
-    overflow-x: hidden; /* Prevent horizontal scroll on the main grid container if columns fit */
-                         /* AG Grid should handle internal scrolling of content if needed */
+    overflow-x: hidden;
 }
