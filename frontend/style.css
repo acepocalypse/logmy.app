@@ -261,7 +261,17 @@ button.secondary {
   display: none !important; 
 }
 
-/* --- Delete Button in AG Grid --- */
+/* --- AG Grid Specific Styles --- */
+.ag-theme-quartz .ag-cell {
+    /* line-height: normal; /* AG Grid's default usually works well with autoHeight */
+    /* The `wrapText: true` and `autoHeight: true` in column definitions (JS) are primary for text flow */
+}
+
+.ag-theme-quartz .ag-header-cell-label {
+    /* Styles for header text if needed beyond theme defaults */
+    /* white-space: normal !important; */ /* If header text also needs to wrap */
+}
+
 .delete-row-btn {
   background-color: var(--error-color) !important;
   color: white !important;
@@ -269,28 +279,29 @@ button.secondary {
   border-radius: var(--border-radius);
   padding: 0.3rem 0.6rem;
   font-size: 0.9rem;
-  line-height: 1;
+  line-height: 1; 
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
   width: auto;
-  margin: 0;
+  margin: 0; 
+  vertical-align: middle;
 }
 .delete-row-btn:hover {
   background-color: color-mix(in srgb, var(--error-color) 80%, black) !important;
 }
-.ag-theme-quartz .ag-cell {
-    overflow: visible !important; /* Allows delete button to not be clipped */
-}
-.grid-link { /* Class for the Job URL link in the grid */
+
+.grid-link { 
     color: var(--accent-primary);
     text-decoration: underline;
+    display: inline-block; 
+    padding: 2px 0; 
 }
 .grid-link:hover {
     color: var(--accent-primary-hover);
 }
 
 
-/* --- Diagnostic/Fix for "White Square Pop-up" (Focus Styles) --- */
+/* --- Diagnostic Fix for "White Square Pop-up" (Focus Styles) --- */
 *:focus, 
 *:focus-visible {
   outline: none !important; 
