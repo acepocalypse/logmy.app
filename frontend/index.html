@@ -374,51 +374,65 @@ function dateFilterComparator(filterLocalDateAtMidnight, cellValue) {
 }
 
 const gridOptions = {
-  columnDefs: columnDefs,
-  rowData: null, // Will be loaded from Supabase
-  domLayout: 'normal', // 'autoHeight' or 'normal'
+  columnDefs: columnDefs, // Defined elsewhere, assuming it's the same as previous
+  rowData: null,
+  domLayout: 'normal', // Keeps grid height fixed, good for performance with pagination
   defaultColDef: {
     flex: 1,
-    minWidth: 120, // Default min width for columns
-    floatingFilter: true, // Adds filter below header names
-    // editable: true, // Can be set here if most columns are editable
+    minWidth: 120,
+    floatingFilter: true,
+    resizable: true, // Keep resizable
+    sortable: true,  // Keep sortable
+    // Explicitly disable default AG Grid tooltips for all columns unless overridden
+    tooltipValueGetter: () => null, 
   },
   pagination: true,
   paginationPageSize: 20,
   paginationPageSizeSelector: [10, 20, 50, 100],
-  rowSelection: 'single', // Or 'multiple'
-  // stopEditingWhenCellsLoseFocus: true, // Good for usability
+  rowSelection: 'single',
+  
+  // Performance improvement for data updates if you provide row IDs
+  // Ensure your data from Supabase has a unique 'id' field for this to work best
+  getRowId: params => params.data.id, 
+  deltaRowDataMode: true, // Process row data updates by ID
+
   onCellValueChanged: async (event) => {
     const updatedRow = event.data;
-    // Ensure date fields are correctly formatted or null for Supabase
     if (updatedRow.application_date === '' || updatedRow.application_date === null) updatedRow.application_date = null;
     if (updatedRow.deadline === '' || updatedRow.deadline === null) updatedRow.deadline = null;
     
-    // Remove AG Grid internal ID if present, Supabase uses its own 'id'
     const { agGridId, ...rowToUpdate } = updatedRow;
 
     const { error: updateError } = await sb.from('applications').update(rowToUpdate).eq('id', rowToUpdate.id);
     if (updateError) {
       alert("Failed to update row: " + updateError.message);
-      // Consider reverting change in grid or re-fetching row
       console.error("Supabase update error:", updateError);
+      // You might need to refresh the row from server to revert if save fails
+      // event.node.setData(originalData); // This would require storing original data before edit
     } else {
       console.log("Row updated successfully in Supabase:", rowToUpdate);
     }
   },
-  onGridReady: (params) => {
+  onGridReady: async (params) => { // Make onGridReady async if it fetches data
+    console.log("AG Grid is ready.");
     gridApi = params.api;
-    // You might want to auto-size columns after data is loaded
-    // params.api.autoSizeAllColumns();
+    // Now that grid is ready, load initial data if user is logged in
+    if (currentUser) {
+      await fetchAndSetGridData(); // New function to fetch and set data
+    }
   }
 };
 
-async function loadGrid() {
-  if (!sb || !currentUser) {
-    console.error("Supabase client not initialized or user not logged in.");
-    return;
+async function fetchAndSetGridData() {
+  if (!gridApi) {
+    console.log("Grid API not ready yet for fetchAndSetGridData");
+    return; // Wait for gridApi to be available
   }
+  console.log("Fetching data for grid...");
   try {
+    // Display a loading overlay if AG Grid supports it, or a custom one
+    gridApi.showLoadingOverlay();
+
     const { data, error } = await sb.from('applications')
       .select('*')
       // .eq('user_id', currentUser.id) // UNCOMMENT if your table has user_id
@@ -426,22 +440,48 @@ async function loadGrid() {
 
     if (error) {
       alert(`Error loading applications: ${error.message}`);
+      gridApi.hideOverlay(); // Hide loading overlay
       return;
     }
 
-    if (gridApi) {
-      gridApi.setGridOption('rowData', data);
-    } else if (grid_div) { // Ensure grid_div exists
-      // Create the grid using the global agGrid object
-      agGrid.createGrid(grid_div, gridOptions);
-      if (gridApi) gridApi.setGridOption('rowData', data); // Set data after grid is ready via onGridReady
-    }
-    
+    console.log("Data fetched, setting to grid:", data.length, "rows");
+    gridApi.setGridOption('rowData', data);
+    gridApi.hideOverlay(); // Hide loading overlay
   } catch (e) {
-    console.error("Error in loadGrid:", e);
-    alert("A critical error occurred while loading the grid.");
+    console.error("Error in fetchAndSetGridData:", e);
+    alert("A critical error occurred while loading grid data.");
+    if (gridApi) gridApi.hideOverlay();
   }
 }
+
+
+async function loadGrid() {
+  if (!sb || !currentUser) {
+    console.error("Supabase client not initialized or user not logged in for loadGrid.");
+    return;
+  }
+  
+  // If grid is already initialized, just refresh data
+  if (gridApi) {
+    console.log("Grid already initialized, fetching new data.");
+    await fetchAndSetGridData();
+  } else if (grid_div) { // Ensure grid_div exists
+    console.log("Initializing new AG Grid instance.");
+    // The onGridReady callback will handle the initial data load
+    agGrid.createGrid(grid_div, gridOptions); 
+  } else {
+    console.error("Grid container #myGrid not found.");
+  }
+}
+
+function updateUIAfterLogin() {
+  auth_section.classList.add('hidden');
+  main_title.classList.add('hidden');
+  app_header.classList.remove('hidden');
+  showApplicationsView(); // This should make the sheet_section (containing grid_div) visible
+  loadGrid(); // Call loadGrid which now correctly handles initialization and data loading
+}
+
 
 add_row_btn.addEventListener('click', async () => {
   if (!currentUser || !gridApi) {

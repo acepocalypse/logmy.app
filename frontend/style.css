@@ -43,140 +43,299 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
-  width: 100%; /* Ensure header spans full width if body has padding */
-  box-sizing: border-box; /* Account for padding if added directly to header */
-  /* Adjust left/right if body has centered max-width and padding */
+  width: 100%; 
+  box-sizing: border-box;
   left: 0; 
   right: 0;
   max-width: 1200px; /* Match body's max-width if centered */
   margin: 0 auto; /* Center header content with body */
 }
 
-.logo-container { display: flex; align-items: center; }
-#header-logo { height: 32px; width: 32px; margin-right: 0.75rem; }
-.app-name-header { font-size: 1.25rem; font-weight: 600; color: var(--accent-primary); }
+.logo-container { 
+  display: flex; 
+  align-items: center; 
+}
+
+#header-logo { 
+  height: 32px; 
+  width: 32px; 
+  margin-right: 0.75rem; 
+}
+
+.app-name-header { 
+  font-size: 1.25rem; 
+  font-weight: 600; 
+  color: var(--accent-primary); 
+}
+
 #app-header nav a {
-  margin-left: 1.5rem; text-decoration: none; color: var(--text-secondary);
-  font-weight: 500; padding-bottom: 0.25rem; border-bottom: 2px solid transparent;
+  margin-left: 1.5rem; 
+  text-decoration: none; 
+  color: var(--text-secondary);
+  font-weight: 500; 
+  padding-bottom: 0.25rem; 
+  border-bottom: 2px solid transparent;
   transition: color 0.2s ease-in-out, border-bottom-color 0.2s ease-in-out;
 }
-#app-header nav a:hover { color: var(--accent-primary); }
-#app-header nav a.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 600; }
+
+#app-header nav a:hover { 
+  color: var(--accent-primary); 
+}
+
+#app-header nav a.active { 
+  color: var(--accent-primary); 
+  border-bottom-color: var(--accent-primary); 
+  font-weight: 600; 
+}
 
 /* --- Main Content Area --- */
 main {
-  padding-top: 1rem; /* Space below sticky header if header has fixed height, adjust as needed */
-  /* If header is not fixed height, this might need dynamic adjustment or ensure header has defined height */
+  padding-top: 1rem; 
 }
 
-#main-title.hidden { display: none; }
-h1 { /* Main application title: logmy.app (when header is hidden) */
-  text-align: center; margin-bottom: 2.5rem; font-size: 2.5rem; font-weight: 600; color: var(--accent-primary);
+#main-title.hidden { 
+  display: none; 
 }
+
+h1 { /* Main application title: logmy.app (when header is hidden) */
+  text-align: center; 
+  margin-bottom: 2.5rem; 
+  font-size: 2.5rem; 
+  font-weight: 600; 
+  color: var(--accent-primary);
+  margin-top: 0; /* Reset default */
+}
+
 h2 { /* Section titles */
-  font-size: 1.75rem; font-weight: 500; border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem; margin-top: 1rem; /* Reduced top margin for sections */ margin-bottom: 1.5rem;
+  font-size: 1.75rem; 
+  font-weight: 500; 
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem; 
+  margin-top: 1rem; 
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
 }
 
 section {
-  background-color: var(--content-bg); padding: 1.5rem 2rem; border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 2rem;
+  background-color: var(--content-bg); 
+  padding: 1.5rem 2rem; 
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+  margin-bottom: 2rem;
 }
 
 /* --- Form Elements --- */
-input[type="email"], input[type="password"], input[type="text"], input[type="date"],
-textarea, /* Added textarea */
+input[type="email"], 
+input[type="password"], 
+input[type="text"], 
+input[type="date"],
+textarea,
 select {
-  width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--border-color);
-  border-radius: var(--border-radius); box-sizing: border-box; font-size: 1rem;
-  background-color: var(--input-bg); color: var(--text-primary);
+  width: 100%; 
+  padding: 0.75rem; 
+  margin-bottom: 1rem; 
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius); 
+  box-sizing: border-box; 
+  font-size: 1rem;
+  background-color: var(--input-bg); 
+  color: var(--text-primary);
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-textarea { line-height: 1.4; }
 
-input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus, input[type="date"]:focus,
-textarea:focus, select:focus {
-  outline: none; border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+textarea { 
+  line-height: 1.4; 
+  min-height: 80px; /* Give textarea a bit more default height */
 }
-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-secondary); }
 
+label { 
+  display: block; 
+  margin-bottom: 0.5rem; 
+  font-weight: 500; 
+  color: var(--text-secondary); 
+}
+
+/* --- Buttons --- */
 button {
-  display: inline-block; padding: 0.75rem 1.5rem; background-color: var(--accent-primary);
-  color: white; border: none; border-radius: var(--border-radius); font-size: 1rem;
-  font-weight: 500; cursor: pointer; text-align: center;
-  transition: background-color 0.2s ease-in-out; margin-top: 0.5rem; margin-bottom: 0.5rem;
+  display: inline-block; 
+  padding: 0.75rem 1.5rem; 
+  background-color: var(--accent-primary);
+  color: white; 
+  border: none; 
+  border-radius: var(--border-radius); 
+  font-size: 1rem;
+  font-weight: 500; 
+  cursor: pointer; 
+  text-align: center;
+  transition: background-color 0.2s ease-in-out; 
+  margin-top: 0.5rem; 
+  margin-bottom: 0.5rem;
 }
-button:hover, button:focus { background-color: var(--accent-primary-hover); outline: none; }
-button.secondary { background-color: var(--accent-secondary); }
-button.secondary:hover, button.secondary:focus { background-color: var(--accent-secondary-hover); }
+
+button.secondary { 
+  background-color: var(--accent-secondary); 
+}
 
 /* Full width for form main buttons */
-#auth-section button, #confirm-form button[type="submit"], #input-section button {
+#auth-section button, 
+#confirm-form button[type="submit"], 
+#input-section button {
   width: 100%;
 }
 
 
 /* --- Auth Section Specifics --- */
-#auth-section { max-width: 400px; margin-left: auto; margin-right: auto; margin-top: 2rem; }
-#auth-section h2 { text-align: center; border-bottom: none; margin-bottom: 1.5rem; }
+#auth-section { 
+  max-width: 400px; 
+  margin-left: auto; 
+  margin-right: auto; 
+  margin-top: 2rem; 
+}
+#auth-section h2 { 
+  text-align: center; 
+  border-bottom: none; 
+  margin-bottom: 1.5rem; 
+}
 
 /* --- Sheet Section & AG Grid --- */
-#sheet-section h2 { margin-bottom: 1rem; } /* Space between title and actions */
+#sheet-section h2 { 
+  margin-bottom: 1rem; 
+}
 .sheet-actions {
   display: flex;
-  gap: 1rem; /* Space between buttons */
+  gap: 1rem; 
   margin-bottom: 1rem;
 }
 .sheet-actions button {
-  width: auto; /* Allow buttons to size to content */
+  width: auto; 
 }
 
-/* AG Grid specific overrides if needed - usually the theme is quite good */
-/* Example: Make header background match one of your accent colors slightly */
+/* AG Grid specific overrides can go here if needed */
+/* For example, to ensure the grid itself has a border if desired, beyond the section's box-shadow */
 /*
-.ag-theme-quartz .ag-header {
-  background-color: color-mix(in srgb, var(--accent-secondary) 15%, transparent);
-}
-.ag-theme-quartz .ag-header-cell-label {
-  font-weight: 600;
-  color: var(--text-primary);
+#myGrid.ag-theme-quartz {
+  border: 1px solid var(--border-color);
 }
 */
 
 /* --- Account Page Section --- */
-#account-section { max-width: 600px; margin-left: auto; margin-right: auto; }
-#account-section h2 { text-align: center; border-bottom: none; margin-bottom: 1.5rem; }
+#account-section { 
+  max-width: 600px; 
+  margin-left: auto; 
+  margin-right: auto; 
+}
+#account-section h2 { 
+  text-align: center; 
+  border-bottom: none; 
+  margin-bottom: 1.5rem; 
+}
 .account-details p {
-  font-size: 1.1rem; margin-bottom: 1rem; padding: 0.75rem;
-  background-color: var(--page-bg); border-radius: var(--border-radius);
+  font-size: 1.1rem; 
+  margin-bottom: 1rem; 
+  padding: 0.75rem;
+  background-color: var(--page-bg); 
+  border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
 }
-.account-details p strong { color: var(--text-primary); }
-#logout-btn {
-  background-color: var(--error-color); width: auto; display: block;
-  margin-left: auto; margin-right: auto; padding: 0.75rem 2rem; margin-top: 1.5rem;
+.account-details p strong { 
+  color: var(--text-primary); 
 }
-#logout-btn:hover { background-color: color-mix(in srgb, var(--error-color) 80%, black); }
+#logout-btn {
+  background-color: var(--error-color); 
+  width: auto; 
+  display: block;
+  margin-left: auto; 
+  margin-right: auto; 
+  padding: 0.75rem 2rem; 
+  margin-top: 1.5rem;
+}
+
 
 /* --- User Feedback Messages --- */
-.message { /* Ensure this base class exists */
-  margin-top: 1rem; padding: 0.75rem 1rem; border-radius: var(--border-radius);
-  text-align: center; min-height: 1.2em; font-weight: 500; border: 1px solid transparent;
+.message { /* Base class for all messages */
+  margin-top: 1rem; 
+  padding: 0.75rem 1rem; 
+  border-radius: var(--border-radius);
+  text-align: center; 
+  min-height: 1.2em; 
+  font-weight: 500; 
+  border: 1px solid transparent;
+  box-sizing: border-box;
 }
 .message.success {
-  background-color: var(--success-bg); color: var(--success-text);
+  background-color: var(--success-bg); 
+  color: var(--success-text);
   border-color: color-mix(in srgb, var(--success-text) 30%, transparent);
 }
 .message.error {
-  background-color: var(--error-bg); color: var(--error-color);
+  background-color: var(--error-bg); 
+  color: var(--error-color);
   border-color: color-mix(in srgb, var(--error-color) 30%, transparent);
 }
 .message.neutral {
-  background-color: color-mix(in srgb, var(--accent-secondary) 20%, var(--content-bg)); /* Mix with content for subtlety */
+  background-color: color-mix(in srgb, var(--accent-secondary) 20%, var(--content-bg)); 
   color: var(--text-primary);
   border-color: var(--accent-secondary);
 }
 
 /* --- Utility --- */
-.hidden { display: none !important; }
+.hidden { 
+  display: none !important; 
+}
+
+/* --- Diagnostic/Fix for "White Square Pop-up" (Focus Styles) --- */
+/* Attempt to globally reset potentially problematic default focus outlines from libraries */
+*:focus, 
+*:focus-visible {
+  outline: none !important; 
+  /* box-shadow: none !important; /* Keep this commented unless absolutely necessary for diagnosis */
+}
+
+/* --- Re-apply YOUR desired focus styles with high specificity --- */
+input[type="email"]:focus, 
+input[type="password"]:focus, 
+input[type="text"]:focus, 
+input[type="date"]:focus,
+textarea:focus, 
+select:focus {
+  outline: none !important; 
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent) !important;
+}
+
+button:focus {
+  outline: none !important;
+  background-color: var(--accent-primary-hover) !important; /* Ensure hover and focus are consistent */
+  /* If you want a box-shadow focus for buttons too (can be combined with background change): */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
+}
+
+button.secondary:focus {
+  background-color: var(--accent-secondary-hover) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-secondary) 30%, transparent) !important;
+}
+
+#logout-btn:focus { /* Specific focus for logout button if it needs to differ */
+  background-color: color-mix(in srgb, var(--error-color) 70%, black) !important; /* Darker error color */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color) 30%, transparent) !important;
+}
+
+#app-header nav a:focus {
+  outline: none !important;
+  color: var(--accent-primary) !important;
+  /* Using a box-shadow for focus on nav links - adjust as needed */
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
+  /* border-bottom-color: transparent !important; /* Keep active style if also focused */
+}
+
+/* If AG Grid cells or headers are getting a weird focus, you might need specific AG Grid selectors. */
+/* The ag-theme-quartz should handle focus well, but if overrides are needed: */
+/*
+.ag-theme-quartz .ag-cell-focus {
+  outline: none !important;
+  border: 1px solid var(--accent-primary) !important; 
+}
+.ag-theme-quartz .ag-header-cell-focus .ag-header-cell-label {
+   outline: none !important;
+}
+*/
