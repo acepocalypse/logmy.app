@@ -25,32 +25,22 @@ import requests
 import google.generativeai as genai
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-GEMMA_MODEL_ID_FOR_API = os.getenv("GEMMA_MODEL_ID", "gemma-3-27b-it")
+# Define the model ID you want to use (e.g., "gemma-2b", "gemma-7b", "gemini-1.0-pro")
+# Make this configurable via an environment variable
+GEMMA_MODEL_ID_FOR_API = os.getenv("GEMMA_MODEL_ID", "gemma-3-27b-it") # Defaulting to "gemma-2b"
 
 GEMINI_MODEL_INSTANCE = None
 try:
     if not GEMINI_API_KEY:
         logging.warning("GEMINI_API_KEY environment variable not set. Parsing features will be disabled if model loading fails.")
-        # Attempting to configure without explicit key might work in some environments (e.g. Colab)
-        # but is not reliable for typical server deployments.
     
-    genai.configure(api_key=GEMINI_API_KEY) # Configure with key (or None if not set)
+    genai.configure(api_key=GEMINI_API_KEY) 
     
     GEMINI_MODEL_INSTANCE = genai.GenerativeModel(GEMMA_MODEL_ID_FOR_API)
-    # Optional: A simple test to see if the model can be reached.
-    # try:
-    #     GEMINI_MODEL_INSTANCE.generate_content("test", generation_config=genai.types.GenerationConfig(candidate_count=1))
-    #     logging.info(f"Google AI Gemini API configured and model '{GEMMA_MODEL_ID_FOR_API}' loaded and tested successfully.")
-    # except Exception as test_e:
-    #     logging.error(f"Model '{GEMMA_MODEL_ID_FOR_API}' loaded but failed test call: {test_e}")
-    #     GEMINI_MODEL_INSTANCE = None # Disable if test fails
-    # else:
     logging.info(f"Google AI Gemini API configured and model '{GEMMA_MODEL_ID_FOR_API}' instance created.")
 
 except Exception as e:
     logging.error(f"Could not initialize Google AI Gemini API or create model instance for '{GEMMA_MODEL_ID_FOR_API}': {e}", exc_info=True)
-    # GEMINI_MODEL_INSTANCE will remain None.
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -210,31 +200,44 @@ def link_parse_endpoint():
         data_from_parser = parse_job_text(raw_text, GEMINI_MODEL_INSTANCE)
         app.logger.debug(f"Parser data for {url}: {data_from_parser}")
         
-        final_data = meta_from_scraper.copy() if meta_from_scraper else {}
+        # Refined merging logic:
+        # Start with data from the parser (which handles general text parsing for company, position, location, deadline)
+        final_data = data_from_parser.copy() if data_from_parser else {}
 
-        if not final_data.get('company') and data_from_parser.get('company'):
-            final_data['company'] = data_from_parser.get('company')
-        if not final_data.get('position') and data_from_parser.get('position'):
-            final_data['position'] = data_from_parser.get('position')
-        if not final_data.get('location') and data_from_parser.get('location'):
-            final_data['location'] = data_from_parser.get('location')
-        
-        if not final_data.get('deadline') and data_from_parser.get('deadline'):
-            final_data['deadline'] = data_from_parser.get('deadline')
-        if meta_from_scraper and meta_from_scraper.get('deadline'): # Prefer scraper's deadline if available
-            final_data['deadline'] = meta_from_scraper.get('deadline')
-        
-        # Ensure other insight fields from scraper (which includes job_type now) are present
-        # These were already copied if final_data started with meta_from_scraper.copy()
-        # This loop is more of a safeguard or for clarity if the copy logic was different.
-        for key_insight in ['job_type', 'salary', 'timeframe', 'start_date']:
-            if meta_from_scraper and meta_from_scraper.get(key_insight) and not final_data.get(key_insight):
-                final_data[key_insight] = meta_from_scraper.get(key_insight)
+        # Overlay with/prioritize data from the scraper's specific extractions and AI insights
+        if meta_from_scraper:
+            # For company, position, location: if scraper has direct extractions (e.g., for Indeed/LinkedIn),
+            # or AI insights for these, they should generally be preferred or considered.
+            # For generic sites, meta_from_scraper might not have these, relying on data_from_parser.
+            if meta_from_scraper.get('company'):
+                final_data['company'] = meta_from_scraper.get('company')
+            if meta_from_scraper.get('position'):
+                final_data['position'] = meta_from_scraper.get('position')
+            if meta_from_scraper.get('location'):
+                final_data['location'] = meta_from_scraper.get('location')
 
+            # For AI-derived insights from scraper (job_type, salary, timeframe, start_date, deadline),
+            # these should take precedence if found by the scraper's AI call.
+            # The 'in' check ensures we consider the key even if its value is None (meaning AI said "Not found" or similar).
+            if 'job_type' in meta_from_scraper:
+                final_data['job_type'] = meta_from_scraper.get('job_type')
+            if 'salary' in meta_from_scraper:
+                final_data['salary'] = meta_from_scraper.get('salary')
+            if 'timeframe' in meta_from_scraper:
+                final_data['timeframe'] = meta_from_scraper.get('timeframe')
+            if 'start_date' in meta_from_scraper:
+                final_data['start_date'] = meta_from_scraper.get('start_date')
+            
+            # Deadline: prefer scraper's AI insight if it exists
+            if 'deadline' in meta_from_scraper:
+                final_data['deadline'] = meta_from_scraper.get('deadline')
+            # If scraper didn't find a deadline, the one from data_from_parser (if any) remains.
 
         final_data["job_url"] = url
         
-        app.logger.info(f"Successfully parsed link: {url}. Combined Data: {final_data}")
+        # Log the final combined data before sending to frontend for debugging
+        app.logger.info(f"Final combined data for {url}: {final_data}")
+        
         return jsonify(final_data), 200
         
     except ScrapeError as exc:
