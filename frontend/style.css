@@ -234,6 +234,35 @@ select:focus {
   background: #fff;
 }
 
+#confirm-form input[type="text"],
+#confirm-form input[type="date"],
+#confirm-form select,
+#confirm-form textarea {
+  line-height: normal;
+}
+
+/* Modernize and normalize select elements within #confirm-form */
+#confirm-form select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--input-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234A5568' width='12' height='12'%3E%3Cpath d='M8 11L3 6h10L8 11z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 12px;
+  padding-right: 2.5rem;
+}
+
+/* Optional: Slightly more pronounced focus for #confirm-form elements for a modern touch */
+#confirm-form input[type="text"]:focus,
+#confirm-form input[type="date"]:focus,
+#confirm-form select:focus,
+#confirm-form textarea:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--text-muted);
