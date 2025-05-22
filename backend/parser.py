@@ -24,31 +24,53 @@ def _call_gemini_api_for_parsing(text: str, gemini_model_instance: genai.Generat
     # The user's example conversation history.
     # You might want to make this more dynamic or keep it fixed if it helps guide the model.
     # For this general parsing task, a simpler, direct prompt is usually better.
-    prompt = f"""Your task is to extract specific information from the job posting text provided below.
+    prompt = f"""You are an expert information extraction system. Your task is to meticulously analyze the job posting text provided below and extract specific pieces of information.
 
 Job Posting Text:
 ---
 {text}
 ---
 
-Extract the following information:
-- Company
-- Position
-- Location
-- Deadline (Format as YYYY-MM-DD if possible. If not, provide the raw text for the deadline.)
+Please extract the following information. For each field, provide a brief description of what kind of information is expected:
 
-Present the extracted information in a structured format, with each piece of information on a new line, like this:
+-   **Company:**
+    * **Description:** The name of the organization or entity offering the job. This is typically the employer.
+    * **Extracted Value:** [Extracted Company Name]
+
+-   **Position:**
+    * **Description:** The title or name of the job role being advertised.
+    * **Extracted Value:** [Extracted Position Title]
+
+-   **Location:**
+    * **Description:** The geographical place(s) where the job is based. This could be a city, state, country, or indicate if it's remote. If multiple locations are listed, include them all, separated by a semicolon.
+    * **Extracted Value:** [Extracted Location]
+
+-   **Deadline:**
+    * **Description:** The closing date or last day to apply for the position.
+    * **Formatting Instruction:** If a specific date is found, please format it as YYYY-MM-DD. If a specific date is present but in a different format, attempt to convert it. If the deadline is mentioned in a less specific way (e.g., "two weeks from posting," "until filled," "urgent"), provide the raw text.
+    * **Extracted Value:** [Extracted Deadline]
+
+**Output Instructions:**
+
+Present the extracted information in the following structured format, with each piece of information on a new line:
+
 Company: [Extracted Company Name]
 Position: [Extracted Position Title]
 Location: [Extracted Location]
 Deadline: [Extracted Deadline]
 
-If any piece of information cannot be found in the text, use the value "Not found" for that specific field.
+**Important Considerations:**
+
+* If any piece of information cannot be confidently identified in the text, use the value "Not found" for that specific field.
+* Pay close attention to context to differentiate between company names, departments, and recruiting agencies (the company is the direct employer).
+* For the deadline, prioritize explicit dates. If a date is ambiguous (e.g., "end of May" without a year), provide the raw text.
+
+Please proceed with the extraction.
 """
     
     generation_config = genai.types.GenerationConfig(
         max_output_tokens=256, # Adjust as needed
-        temperature=0.2,      # Adjust for creativity vs. factuality
+        temperature=1,      # Adjust for creativity vs. factuality
         # top_p=0.8,            # Supported by some models, check Gemma model specifics
     )
     
