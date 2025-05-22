@@ -236,12 +236,16 @@ select:focus {
 
 #confirm-form input[type="text"],
 #confirm-form input[type="date"],
-#confirm-form select,
-#confirm-form textarea {
-  line-height: normal;
+#confirm-form select {
+  line-height: 1.5;
+  vertical-align: middle;
 }
 
-/* Modernize and normalize select elements within #confirm-form */
+#confirm-form textarea {
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
 #confirm-form select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -260,6 +264,7 @@ select:focus {
 #confirm-form textarea:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+  background: #fff;
 }
 
 input::placeholder,
