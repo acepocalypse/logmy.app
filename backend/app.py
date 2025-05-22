@@ -25,9 +25,8 @@ import requests
 import google.generativeai as genai
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-# Define the model ID you want to use (e.g., "gemma-2b", "gemma-7b", "gemini-1.0-pro")
-# Make this configurable via an environment variable
-GEMMA_MODEL_ID_FOR_API = os.getenv("GEMMA_MODEL_ID", "gemma-2b") # Defaulting to "gemma-2b"
+
+GEMMA_MODEL_ID_FOR_API = os.getenv("GEMMA_MODEL_ID", "gemma-3-27b-it")
 
 GEMINI_MODEL_INSTANCE = None
 try:
