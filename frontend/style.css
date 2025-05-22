@@ -254,7 +254,6 @@ select:focus {
   padding-right: 2.5rem;
 }
 
-/* Optional: Slightly more pronounced focus for #confirm-form elements for a modern touch */
 #confirm-form input[type="text"]:focus,
 #confirm-form input[type="date"]:focus,
 #confirm-form select:focus,
