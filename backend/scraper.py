@@ -275,29 +275,27 @@ def _extract_indeed(dom: BeautifulSoup, gemini_model_instance: genai.GenerativeM
 
 def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.GenerativeModel) -> tuple[str, dict]:
     logger.debug("Extracting content from LinkedIn page.")
-    # More robust selectors for LinkedIn since it's dynamic
     title    = _text_of(dom.select_one("h1.top-card-layout__title, h1.job-title, .job-details-jobs-unified-top-card__job-title, .topcard__title, .jobs-unified-top-card__title"))
     company  = _text_of(dom.select_one("a.topcard__org-name-link, span.topcard__flavor:first-of-type, a.job-card-container__company-name, .job-details-jobs-unified-top-card__company-name a, .topcard__flavor:first-child, .jobs-unified-top-card__company-name"))
     
-    # LinkedIn location can be tricky, try a few selectors
-    location_el = dom.select_one("span.topcard__flavor--bullet") # Often the most reliable
+    location_el = dom.select_one("span.topcard__flavor--bullet")
     if not location_el:
-        location_el = dom.select_one("span.topcard__flavor:nth-of-type(2)") # Second flavor item
+        location_el = dom.select_one("span.topcard__flavor:nth-of-type(2)")
     if not location_el:
         location_el = dom.select_one(".job-details-jobs-unified-top-card__primary-description-container > div:nth-child(2) span.tvm__text") # More specific path
     if not location_el:
-        location_el = dom.select_one(".jobs-unified-top-card__job-insight span.jobs-unified-top-card__bullet") # Another common location selector
+        location_el = dom.select_one(".jobs-unified-top-card__job-insight span.jobs-unified-top-card__bullet")
     location = _text_of(location_el)
 
 
     body_el  = (dom.select_one("div.description__text section.show-more-less-html") 
                 or dom.select_one("div.description__text")
                 or dom.select_one("div.show-more-less-html__markup")
-                or dom.select_one("#job-details section.description") # More specific section
+                or dom.select_one("#job-details section.description")
                 or dom.select_one("#job-details") 
                 or dom.select_one(".jobs-description__content .jobs-box__html-content") 
-                or dom.select_one(".jobs-description__container") # New potential container
-                or dom.select_one("div.jobs-description__html-content") # Newer common selector
+                or dom.select_one(".jobs-description__container")
+                or dom.select_one("div.jobs-description__html-content")
                 )
     body = ""
     if body_el:
