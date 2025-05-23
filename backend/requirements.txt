@@ -9,4 +9,3 @@ lxml
 dateparser
 google-generativeai
 gunicorn
-selenium
