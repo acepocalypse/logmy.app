@@ -529,11 +529,6 @@ button.secondary:hover {
   color: var(--text-primary); /* Ensure text color */
 }
 
-/* Style checkbox cells */
-.ag-theme-quartz .ag-cell.ag-selection-cell {
-    padding-left: 1rem; /* Align checkbox */
-}
-
 /* Subtle focus */
 .ag-theme-quartz .ag-cell:focus {
   border-color: transparent !important;

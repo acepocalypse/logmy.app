@@ -392,22 +392,8 @@ nav_account_link.addEventListener('click', (e) => { e.preventDefault(); if (curr
 link_parse_btn.addEventListener('click', async () => { /* ... (same as before) ... */ });
 confirm_form_el.addEventListener('submit', async e => { /* ... (same as before, use confirm_form_el) ... */ });
 
-// --- AG Grid Column Definitions & Options (largely same as before) ---
+// --- AG Grid Column Definitions & Options (Updated) ---
 const columnDefs = [
-  // --- ADD THIS COLUMN ---
-  {
-    headerName: '', // No header text needed
-    field: 'checkbox',
-    width: 60, // Adjust width as needed
-    checkboxSelection: true,
-    headerCheckboxSelection: true, // Optional: for select/deselect all
-    pinned: 'left',
-    editable: false,
-    sortable: false,
-    filter: false,
-    suppressMenu: true
-  },
-  // --- EXISTING COLUMNS (Keep them, but 'Status' will be modified) ---
   { headerName: 'Company', field: 'company', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 140, flex: 2 },
   { headerName: 'Position', field: 'position', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 140, flex: 2 },
   { headerName: 'Location', field: 'location', editable: true, filter: 'agTextColumnFilter', sortable: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 120, flex: 1 },
@@ -419,20 +405,25 @@ const columnDefs = [
     cellEditor: 'agSelectCellEditor',
     cellEditorParams: { values: ['Applied', 'Interview', 'Offer', 'Rejected', 'Wishlist'] },
     filter: 'agSetColumnFilter', sortable: true, resizable: true, suppressMenu: true,
-    minWidth: 120, // Increased width for pill
+    minWidth: 120,
     flex: 1,
     cellRenderer: params => {
-      if (!params.value) return '';
-      const status = params.value.toLowerCase().replace(' ', '-');
-      const statusEl = document.createElement('span');
-      statusEl.classList.add('status-pill', `status-${status}`);
-      statusEl.textContent = params.value;
-      return statusEl;
+        if (!params.value) return '';
+        const status = params.value.toLowerCase().replace(' ', '-');
+        const statusEl = document.createElement('span');
+        statusEl.classList.add('status-pill', `status-${status}`);
+        statusEl.textContent = params.value;
+        return statusEl;
     }
   },
-  // --- EXISTING COLUMNS (Keep them) ---
   { headerName: 'Notes', field: 'notes', editable: true, cellEditor: 'agLargeTextCellEditor', cellEditorPopup: true, resizable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 150, flex: 2 },
-  { headerName: 'Job URL', field: 'job_url', resizable: true, sortable: false, filter: false, cellRenderer: params => { if (params.value) { const url = params.value.startsWith('http') ? params.value : 'http://' + params.value; return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="grid-link">View</a>`; } return ''; }, editable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 80,  flex: 0.5 },
+  {
+    headerName: 'URL',
+    field: 'job_url',
+    resizable: true, sortable: false, filter: false,
+    cellRenderer: params => { if (params.value) { const url = params.value.startsWith('http') ? params.value : 'http://' + params.value; return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="grid-link">View</a>`; } return ''; },
+    editable: true, suppressMenu: true, wrapText: true, autoHeight: true, minWidth: 80,  flex: 0.5
+  },
   { headerName: 'Actions', field: 'id', width: 70, pinned: 'right', cellRenderer: params => { const button = document.createElement('button'); button.classList.add('delete-row-btn'); button.innerHTML = '&#x1F5D1;'; button.title = 'Delete Application'; button.style.lineHeight = '1'; button.addEventListener('click', () => handleDeleteRow(params.node.data)); return button; }, editable: false, sortable: false, filter: false, resizable: false, suppressMenu: true }
 ];
 function dateFilterComparator(filterLocalDateAtMidnight, cellValue) { /* ... (same as before) ... */ }
