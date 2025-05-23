@@ -60,7 +60,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 if not app.debug:
-    app.logger.setLevel(logging.INFO)
+    app.logger.setLevel(logging.DEBUG)
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
