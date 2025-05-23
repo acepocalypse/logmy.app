@@ -63,7 +63,7 @@
     <section id="input-section" class="hidden">
       <h2>Paste Job‑Posting URL</h2>
       <div class="input-button-group">
-        <input id="job-url" placeholder="https://job-posting-link.com/..." />
+        <input id="job-url" placeholder="https://job-posting-link.com/..." type="text" />
         <button id="link-parse-btn">Fetch & Parse</button>
       </div>
       <p id="link-msg" class="message"></p>
@@ -72,11 +72,11 @@
     <form id="confirm-form" class="hidden">
       <h2>Review Details</h2>
       <label for="company">Company</label>
-      <input name="company" id="company" />
+      <input name="company" id="company" type="text" />
       <label for="position">Position</label>
-      <input name="position" id="position" />
+      <input name="position" id="position" type="text" />
       <label for="location">Location</label>
-      <input name="location" id="location" />
+      <input name="location" id="location" type="text" />
       <label for="job_type">Job Type</label>
       <select name="job_type" id="job_type">
         <option value=""></option><option value="Internship">Internship</option><option value="Full-Time">Full‑Time</option><option value="Contract">Contract</option><option value="Part-Time">Part‑Time</option>
@@ -90,7 +90,7 @@
         <option value="Applied">Applied</option><option value="Interview">Interview</option><option value="Offer">Offer</option><option value="Rejected">Rejected</option><option value="Wishlist">Wishlist</option>
       </select>
       <label for="job_url_form">Job URL</label>
-      <input name="job_url" id="job_url_form" />
+      <input name="job_url" id="job_url_form" type="text" />
       <label for="notes">Notes</label>
       <textarea name="notes" id="notes" rows="3"></textarea>
       <button type="submit">Save Application</button>
