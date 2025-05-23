@@ -19,7 +19,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager # Helps manage ChromeDriver
+# REMOVED: from webdriver_manager.chrome import ChromeDriverManager
 
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ If any piece of information cannot be clearly identified from the text, use the 
         HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
     }
-    
+
     try:
         response = gemini_model_instance.generate_content(
             contents=[prompt],
@@ -93,19 +93,19 @@ If any piece of information cannot be clearly identified from the text, use the 
         if response.candidates[0].finish_reason == genai.types.FinishReason.SAFETY:
             logger.warning(f"Insights extraction stopped due to safety reasons. Ratings: {response.candidates[0].safety_ratings}")
             return insights
-        
+
         gemini_response_text = response.text
         logger.debug(f"Google AI Gemma raw response for insights: {gemini_response_text}")
 
         for line in gemini_response_text.split('\n'):
             if ":" in line:
                 key, value = line.split(":", 1)
-                key_formatted = key.strip().lower().replace(" ", "_") 
+                key_formatted = key.strip().lower().replace(" ", "_")
                 value_stripped = value.strip()
 
                 if value_stripped.lower() == "not found":
-                    value_stripped = None 
-                
+                    value_stripped = None
+
                 if key_formatted == "salary" and value_stripped:
                     insights["salary"] = value_stripped
                 elif key_formatted == "timeframe" and value_stripped:
@@ -118,10 +118,10 @@ If any piece of information cannot be clearly identified from the text, use the 
                         if parsed_date:
                             insights[key_formatted] = parsed_date.strftime("%Y-%m-%d")
                         else:
-                            insights[key_formatted] = value_stripped 
+                            insights[key_formatted] = value_stripped
                     except Exception:
-                        insights[key_formatted] = value_stripped 
-        
+                        insights[key_formatted] = value_stripped
+
     except Exception as e:
         logger.error(f"Error during Google AI Gemma interaction for insights: {e}", exc_info=True)
         return insights # Return partially filled or empty insights on error
@@ -134,13 +134,13 @@ If any piece of information cannot be clearly identified from the text, use the 
         ]
         raw_salaries = []
         for pattern in salary_patterns:
-            match = re.search(pattern, description) 
+            match = re.search(pattern, description)
             if match:
                 raw_salaries.append(match.group(0))
         if raw_salaries:
             insights["salary"] = raw_salaries[0].strip()
             logger.debug(f"Found potential salary via regex fallback: {insights['salary']}")
-            
+
     return insights
 
 
@@ -148,12 +148,12 @@ def extract_insights_from_description(desc: str, gemini_model_instance: genai.Ge
     # Ensure the initial dictionary includes job_type so it's always present in the return
     insights = {"salary": None, "deadline": None, "timeframe": None, "start_date": None, "job_type": None}
     if not desc or not gemini_model_instance:
-        return insights 
-    
+        return insights
+
     # Update the insights dictionary with results from the API call
     extracted_insights = _call_gemini_api_for_insights(desc, gemini_model_instance)
     insights.update(extracted_insights) # Merge results, preferring those from API
-    
+
     logger.debug(f"Google AI Gemma extracted insights: {insights}")
     return insights
 
@@ -166,14 +166,16 @@ def fetch_page(url: str) -> str:
     options.add_argument("--disable-dev-shm-usage") # Overcomes limited resource problems
     options.add_argument("--disable-gpu") # Recommended for headless environments
     options.add_argument(f"user-agent={HEADERS['User-Agent']}") # Set User-Agent
+    # Set the binary location explicitly to be sure
+    options.binary_location = "/usr/bin/chromium"
 
     driver = None
     try:
-        # ChromeDriverManager will download the correct chromedriver if it's not present
-        # Ensure Chromium browser is installed in your Docker image
-        service = Service(ChromeDriverManager().install())
+        # Use Service() without ChromeDriverManager.
+        # It should pick up /usr/bin/chromedriver from PATH if installed via apt.
+        service = Service()
         driver = webdriver.Chrome(service=service, options=options)
-        
+
         driver.set_page_load_timeout(30) # Set page load timeout
         driver.get(url)
 
@@ -212,13 +214,13 @@ def extract_text(html: str, url: str, gemini_model_instance: genai.GenerativeMod
         return _extract_indeed(dom, gemini_model_instance)
     elif "linkedin." in host:
         return _extract_linkedin(dom, gemini_model_instance)
-    
+
     # For generic websites, immediately use the entire body text
     logger.info(f"Using generic body text extractor for {url}")
     body_text = _text_of(dom.body) if dom.body else dom.get_text(" ", strip=True)
-    
-    meta = {} 
-    if body_text and gemini_model_instance: 
+
+    meta = {}
+    if body_text and gemini_model_instance:
          insights = extract_insights_from_description(body_text, gemini_model_instance)
          meta.update(insights) # This will now include 'job_type' if found by the AI
 
@@ -237,7 +239,7 @@ def _text_of(el: Tag | None) -> str:
 def _extract_indeed(dom: BeautifulSoup, gemini_model_instance: genai.GenerativeModel) -> tuple[str, dict]:
     logger.debug("Extracting content from Indeed page.")
     title = _text_of(dom.select_one("h1.jobsearch-JobInfoHeader-title"))
-    
+
     # Attempt to find company name more reliably
     company_el = dom.select_one('div[data-testid="job-info-header"] div[data-company-name="true"]')
     if not company_el: # Fallback selectors
@@ -265,10 +267,10 @@ def _extract_indeed(dom: BeautifulSoup, gemini_model_instance: genai.GenerativeM
     body = _text_of(body_el)
 
     meta = {"company": company.strip(), "position": title.strip(), "location": location.strip()}
-    if body and gemini_model_instance: 
+    if body and gemini_model_instance:
         insights = extract_insights_from_description(body, gemini_model_instance)
         meta.update(insights)
-        
+
     logger.debug(f"Indeed extracted meta: {meta}")
     return body or dom.get_text(" ", strip=True), meta
 
@@ -277,7 +279,7 @@ def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.Generativ
     logger.debug("Extracting content from LinkedIn page.")
     title    = _text_of(dom.select_one("h1.top-card-layout__title, h1.job-title, .job-details-jobs-unified-top-card__job-title, .topcard__title, .jobs-unified-top-card__title"))
     company  = _text_of(dom.select_one("a.topcard__org-name-link, span.topcard__flavor:first-of-type, a.job-card-container__company-name, .job-details-jobs-unified-top-card__company-name a, .topcard__flavor:first-child, .jobs-unified-top-card__company-name"))
-    
+
     location_el = dom.select_one("span.topcard__flavor--bullet")
     if not location_el:
         location_el = dom.select_one("span.topcard__flavor:nth-of-type(2)")
@@ -288,21 +290,21 @@ def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.Generativ
     location = _text_of(location_el)
 
 
-    body_el  = (dom.select_one("div.description__text section.show-more-less-html") 
+    body_el  = (dom.select_one("div.description__text section.show-more-less-html")
                 or dom.select_one("div.description__text")
                 or dom.select_one("div.show-more-less-html__markup")
                 or dom.select_one("#job-details section.description")
-                or dom.select_one("#job-details") 
-                or dom.select_one(".jobs-description__content .jobs-box__html-content") 
+                or dom.select_one("#job-details")
+                or dom.select_one(".jobs-description__content .jobs-box__html-content")
                 or dom.select_one(".jobs-description__container")
                 or dom.select_one("div.jobs-description__html-content")
                 )
     body = ""
     if body_el:
         body = _text_of(body_el)
-    
+
     meta = {"company": company.strip(), "position": title.strip(), "location": location.strip()}
-    if body and gemini_model_instance: 
+    if body and gemini_model_instance:
         insights = extract_insights_from_description(body, gemini_model_instance)
         meta.update(insights)
 
