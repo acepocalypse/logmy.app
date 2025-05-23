@@ -23,5 +23,4 @@ COPY . .
 EXPOSE 8000
 ENV PYTHONPATH /app
 
-# Command to run the Flask application with Gunicorn
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000} backend.app:app"]
+CMD ["sh", "-c", "cd backend && gunicorn --bind 0.0.0.0:${PORT:-8000} app:app"]
