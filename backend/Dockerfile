@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 WORKDIR /app
 
-# Install Chromium and its dependencies required for headless Selenium
+# Install Chromium and its dependencies
 RUN apt-get update && apt-get install -y \
     chromium \
     libnss3 \
@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     libxtst6 \
     libfontconfig1 \
-    libjpeg-turbo8 \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,5 +24,4 @@ EXPOSE 8000
 ENV PYTHONPATH /app
 
 # Command to run the Flask application with Gunicorn
-# Corrected to point to 'backend/app.py' which contains the 'app' Flask instance
 CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000} backend.app:app"]
