@@ -47,6 +47,7 @@ body {
   font-family: var(--font-family-sans);
   background: var(--page-bg);
   color: var(--text-primary);
+  margin: 0; /* Remove all default margin */
   padding: 0;
   line-height: 1.6;
   min-height: 100vh;
@@ -58,11 +59,11 @@ body {
 
 /* Header */
 #app-header {
-  width: 100vw; /* Ensure header spans full viewport width */
+  width: 100vw;
   left: 0;
   right: 0;
-  position: sticky;
   top: 0;
+  position: fixed; /* Make header fixed to top, no gap */
   z-index: 1000;
   background: var(--content-bg);
   backdrop-filter: blur(20px);
@@ -74,8 +75,13 @@ body {
   box-shadow: var(--shadow-sm);
   border-bottom: 1px solid var(--border-color);
   transition: var(--transition);
-  /* Remove border-radius if present */
   border-radius: 0;
+}
+
+/* Add padding-top to main to prevent content being hidden under fixed header */
+main {
+  padding: 2rem 2rem 4rem;
+  padding-top: 5.5rem; /* Adjust to match header height */
 }
 
 .logo-container {
