@@ -23,4 +23,4 @@ COPY . .
 EXPOSE 8000
 ENV PYTHONPATH /app
 
-CMD ["sh", "-c", "cd backend && gunicorn --bind 0.0.0.0:${PORT:-8000} app:app"]
+CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "app:app"] 
