@@ -76,11 +76,13 @@ body {
   border-bottom: 1px solid var(--border-color);
   transition: var(--transition);
   border-radius: 0;
+  height: 4.5rem;
+  min-height: 4.5rem;
 }
 
 main {
   padding: 2rem 2rem 4rem;
-  padding-top: 6rem;
+  padding-top: 4.5rem;
 }
 
 .logo-container {
