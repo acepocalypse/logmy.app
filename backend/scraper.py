@@ -266,6 +266,6 @@ def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.Generativ
     if body and gemini_model_instance: 
         insights = extract_insights_from_description(body, gemini_model_instance)
         meta.update(insights)
-
+    logger.debug(f"LinkedIn Scraper (BeautifulSoup) extracted: Company='{company.strip()}', Position='{title.strip()}', Location='{location.strip()}'")
     logger.debug(f"LinkedIn extracted meta: {meta}")
     return body or dom.get_text(" ", strip=True), meta

@@ -191,9 +191,11 @@ def link_parse_endpoint():
     try:
         app.logger.info(f"Fetching page: {url}")
         html_content = fetch_page(url)
+        app.logger.debug(f"Fetched HTML content preview (first 1000 chars): {html_content[:1000]}")
         
         app.logger.info(f"Extracting text from HTML for URL: {url}")
         raw_text, meta_from_scraper = extract_text(html_content, url, GEMINI_MODEL_INSTANCE)
+        app.logger.debug(f"Extracted Raw Text preview (first 1000 chars): {raw_text[:1000]}")
         app.logger.debug(f"Scraper meta for {url}: {meta_from_scraper}")
         
         app.logger.info(f"Parsing extracted text with general parser for URL: {url}")
