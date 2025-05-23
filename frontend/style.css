@@ -59,11 +59,12 @@ body {
 
 /* Header */
 #app-header {
+  box-sizing: border-box;
   width: 100vw;
   left: 0;
   right: 0;
   top: 0;
-  position: fixed; /* Make header fixed to top, no gap */
+  position: fixed;
   z-index: 1000;
   background: var(--content-bg);
   backdrop-filter: blur(20px);
@@ -78,8 +79,17 @@ body {
   border-radius: 0;
   height: 4.5rem;
   min-height: 4.5rem;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
+main {
+  box-sizing: border-box;
+  padding: 2rem 2rem 4rem;
+  padding-top: 4.5rem; /* Only one padding-top, matches header height */
+}
+
+/* Remove duplicate main styles and set only one padding-top */
 main {
   padding: 2rem 2rem 4rem;
   padding-top: 4.5rem;
