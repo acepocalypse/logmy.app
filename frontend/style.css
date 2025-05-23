@@ -47,8 +47,6 @@ body {
   font-family: var(--font-family-sans);
   background: var(--page-bg);
   color: var(--text-primary);
-  max-width: 1400px;
-  margin: 0 auto;
   padding: 0;
   line-height: 1.6;
   min-height: 100vh;
@@ -60,6 +58,12 @@ body {
 
 /* Header */
 #app-header {
+  width: 100vw; /* Ensure header spans full viewport width */
+  left: 0;
+  right: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   background: var(--content-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -69,10 +73,9 @@ body {
   align-items: center;
   box-shadow: var(--shadow-sm);
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
   transition: var(--transition);
+  /* Remove border-radius if present */
+  border-radius: 0;
 }
 
 .logo-container {
