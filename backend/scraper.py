@@ -1,5 +1,3 @@
-# backend/scraper.py
-
 from __future__ import annotations
 
 import requests
@@ -8,10 +6,20 @@ from urllib.parse import urlparse
 import logging
 import re
 import dateparser
+import time # Added for basic sleep
 
 # Import for Google AI (Gemini API / google-genai)
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold # For safety settings
+
+# Selenium Imports
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager # Helps manage ChromeDriver
 
 
 logger = logging.getLogger(__name__)
@@ -149,23 +157,51 @@ def extract_insights_from_description(desc: str, gemini_model_instance: genai.Ge
     logger.debug(f"Google AI Gemma extracted insights: {insights}")
     return insights
 
+# MODIFIED fetch_page to use Selenium
 def fetch_page(url: str) -> str:
+    logger.info(f"Attempting to fetch page with Selenium: {url}")
+    options = Options()
+    options.add_argument("--headless") # Run Chrome in headless mode (without a UI)
+    options.add_argument("--no-sandbox") # Required for running in Docker/container environments
+    options.add_argument("--disable-dev-shm-usage") # Overcomes limited resource problems
+    options.add_argument("--disable-gpu") # Recommended for headless environments
+    options.add_argument(f"user-agent={HEADERS['User-Agent']}") # Set User-Agent
+
+    driver = None
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        resp.raise_for_status() 
-        return resp.text
-    except requests.exceptions.Timeout:
-        logger.error(f"Timeout while fetching {url}")
-        raise ScrapeError(f"Timeout: Could not fetch {url} within 15 seconds.")
-    except requests.exceptions.HTTPError as http_err:
-        logger.error(f"HTTP error fetching {url}: {http_err}")
-        raise ScrapeError(f"HTTP error: {http_err.response.status_code} for {url}.")
-    except requests.exceptions.RequestException as req_err:
-        logger.error(f"Request exception fetching {url}: {req_err}")
-        raise ScrapeError(f"Network error: Failed to fetch {url} ({req_err}).")
+        # ChromeDriverManager will download the correct chromedriver if it's not present
+        # Ensure Chromium browser is installed in your Docker image
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        driver.set_page_load_timeout(30) # Set page load timeout
+        driver.get(url)
+
+        # Basic wait for dynamic content to load (adjust as needed)
+        # You might need more sophisticated explicit waits for specific elements
+        # For LinkedIn, waiting for a common job description element might be useful.
+        try:
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.description__text, #jobDescriptionText"))
+            )
+            logger.debug("Selenium: Waited for job description element.")
+        except Exception as e:
+            logger.warning(f"Selenium: Job description element not found within wait time, proceeding. Error: {e}")
+            # Continue even if element not found, page_source might still have some data
+
+        # You might also introduce a short fixed sleep if content isn't fully loaded immediately
+        time.sleep(3) # Wait for 3 seconds after initial load and explicit wait
+
+
+        page_source = driver.page_source
+        logger.info(f"Selenium successfully fetched page source of length: {len(page_source)}")
+        return page_source
     except Exception as exc:
-        logger.error(f"Generic exception fetching {url}: {exc}", exc_info=True)
-        raise ScrapeError(f"Failed to fetch {url}: {exc}")
+        logger.error(f"Selenium error fetching {url}: {exc}", exc_info=True)
+        raise ScrapeError(f"Selenium failed to fetch {url}: {exc}")
+    finally:
+        if driver:
+            driver.quit() # Ensure the browser instance is closed
 
 
 def extract_text(html: str, url: str, gemini_model_instance: genai.GenerativeModel) -> tuple[str, dict]:
@@ -239,8 +275,9 @@ def _extract_indeed(dom: BeautifulSoup, gemini_model_instance: genai.GenerativeM
 
 def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.GenerativeModel) -> tuple[str, dict]:
     logger.debug("Extracting content from LinkedIn page.")
-    title    = _text_of(dom.select_one("h1.top-card-layout__title, h1.job-title, .job-details-jobs-unified-top-card__job-title, .topcard__title"))
-    company  = _text_of(dom.select_one("a.topcard__org-name-link, span.topcard__flavor:first-of-type, a.job-card-container__company-name, .job-details-jobs-unified-top-card__company-name a, .topcard__flavor:first-child"))
+    # More robust selectors for LinkedIn since it's dynamic
+    title    = _text_of(dom.select_one("h1.top-card-layout__title, h1.job-title, .job-details-jobs-unified-top-card__job-title, .topcard__title, .jobs-unified-top-card__title"))
+    company  = _text_of(dom.select_one("a.topcard__org-name-link, span.topcard__flavor:first-of-type, a.job-card-container__company-name, .job-details-jobs-unified-top-card__company-name a, .topcard__flavor:first-child, .jobs-unified-top-card__company-name"))
     
     # LinkedIn location can be tricky, try a few selectors
     location_el = dom.select_one("span.topcard__flavor--bullet") # Often the most reliable
@@ -248,6 +285,8 @@ def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.Generativ
         location_el = dom.select_one("span.topcard__flavor:nth-of-type(2)") # Second flavor item
     if not location_el:
         location_el = dom.select_one(".job-details-jobs-unified-top-card__primary-description-container > div:nth-child(2) span.tvm__text") # More specific path
+    if not location_el:
+        location_el = dom.select_one(".jobs-unified-top-card__job-insight span.jobs-unified-top-card__bullet") # Another common location selector
     location = _text_of(location_el)
 
 
@@ -257,6 +296,8 @@ def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.Generativ
                 or dom.select_one("#job-details section.description") # More specific section
                 or dom.select_one("#job-details") 
                 or dom.select_one(".jobs-description__content .jobs-box__html-content") 
+                or dom.select_one(".jobs-description__container") # New potential container
+                or dom.select_one("div.jobs-description__html-content") # Newer common selector
                 )
     body = ""
     if body_el:
@@ -266,6 +307,6 @@ def _extract_linkedin(dom: BeautifulSoup, gemini_model_instance: genai.Generativ
     if body and gemini_model_instance: 
         insights = extract_insights_from_description(body, gemini_model_instance)
         meta.update(insights)
-    logger.debug(f"LinkedIn Scraper (BeautifulSoup) extracted: Company='{company.strip()}', Position='{title.strip()}', Location='{location.strip()}'")
+
     logger.debug(f"LinkedIn extracted meta: {meta}")
     return body or dom.get_text(" ", strip=True), meta

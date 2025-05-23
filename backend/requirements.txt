@@ -9,3 +9,5 @@ lxml
 dateparser
 google-generativeai
 gunicorn
+selenium
+webdriver-manager
